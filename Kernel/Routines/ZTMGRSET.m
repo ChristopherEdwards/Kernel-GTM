@@ -1,6 +1,5 @@
 ZTMGRSET ;SF/RWF,PUG/TOAD - SET UP THE MGR ACCOUNT FOR THE SYSTEM ;02/13/2008
- ;;8.0;KERNEL;**34,36,69,94,121,127,136,191,275,355,446,584**;JUL 10, 1995;Build 6
- ;Per VHA Directive 2004-038, this routine should not be modified
+ ;;8.0;KERNEL;**34,36,69,94,121,127,136,191,275,355,446**;JUL 10, 1995;Build 35
  ;
  N %D,%S,I,OSMAX,U,X,X1,X2,Y,Z1,Z2,ZTOS,ZTMODE,SCR
  S ZTMODE=0
@@ -50,7 +49,7 @@ B S Y=0,ZTOS=0 I $D(^%ZOSF("OS")) D
  F I=1:1:OSMAX W !,I," = ",$P($T(@I),";",3)
  W !,"System: " W:ZTOS ZTOS,"//"
  R X:300 S:X="" X=ZTOS
- I $S(X<1!(X>OSMAX):1,1:$P($T(@X),";",3)="") W !,"NOT A VALID CHOICE" Q:X[U 0 G B
+ I X<1!(X>OSMAX) W !,"NOT A VALID CHOICE" Q:X[U 0 G B
  Q X
  ;
 OSNUM() ;Return the OS number
@@ -90,8 +89,8 @@ ETRAP ;Error Trap
  S %S="ZTER^ZTER1",%D="%ZTER^%ZTER1"
  D MOVE
  Q
-OTHER S %S="ZTPP^ZTP1^ZTPTCH^ZTRDEL^ZTMOVE^ZTBKC"
- S %D="%ZTPP^%ZTP1^%ZTPTCH^%ZTRDEL^%ZTMOVE^%ZTBKC"
+OTHER S %S="ZTPP^ZTP1^ZTPTCH^ZTRDEL^ZTMOVE"
+ S %D="%ZTPP^%ZTP1^%ZTPTCH^%ZTRDEL^%ZTMOVE"
  D MOVE
  Q
 DEV S %S="ZIS^ZIS1^ZIS2^ZIS3^ZIS5^ZIS6^ZIS7^ZISC^ZISP^ZISS^ZISS1^ZISS2^ZISTCP^ZISUTL"
@@ -125,12 +124,17 @@ ZOSF(X) ;
  I $$VERSION^%ZOSV(1)["UNIX" S %S="ZISHMSU",%D="%ZISH" D MOVE
  Q
 3 ;;Cache (VMS, NT, Linux), OpenM-NT
- S %S="ZOSVONT^ZTBKCONT^ZIS4ONT^ZISFONT^ZISHONT^XUCIONT"
+ S %S="ZOSVONT^^ZIS4ONT^ZISFONT^ZISHONT^XUCIONT"
  D DES,MOVE
  S %S="ZISTCPS^ZTMDCL",%D="%ZISTCPS^%ZTMDCL"
  D MOVE,RUM,ZOSF("ZOSFONT")
  Q
-4 ;;
+4 ;;Datatree, DTM-PC, DT-MAX
+ S %S="ZOSVDTM^ZTBKCDTM^ZIS4DTM^ZISFDTM^ZISHDTM^XUCIDTM"
+ D DES,MOVE
+ S %S="ZOSV1DTM^ZTMB",%D="%ZOSV1^%ustart"
+ D MOVE,ZOSF("ZOSFDTM")
+ Q
 5 ;;
 6 ;;
 7 ;;GT.M (VMS)
@@ -166,22 +170,19 @@ MOVE ; rename % routines
 COPY(FROM,TO) ;
  I ZTOS'=7,ZTOS'=8 X "ZL @FROM ZS @TO" Q
  ;For GT.M below
- N PATH,COPY,CMD S PATH=$$R
- S FROM=PATH_FROM_".m"
- S TO=PATH_$TR(TO,"%","_")_".m"
- S COPY=$S(ZTOS=7:"COPY",1:"cp")
- S CMD=COPY_" "_FROM_" "_TO
- X "ZSYSTEM CMD"
+ N IO,PATH,COPY,CMD S PATH=$$R,IO=$IO
+ S FROM="^"_FROM,TO=PATH_$TR(TO,"%","_")_".m"
+ O TO:NEWINCVERSION U TO ZPRINT FROM U IO C TO
  Q
  ;
 R() ; routine directory for GT.M
- N ZRO X "S ZRO=$ZRO"
- I ZTOS=7 D  Q $S(ZRO["(":$P($P(ZRO,"(",2),")"),1:ZRO)
- . S ZRO=$P(ZRO,",")
- . I ZRO["/SRC=" S ZRO=$P(ZRO,"=",2) Q  ;Source dir
- . S ZRO=$S(ZRO["/":$P(ZRO,"/"),1:ZRO) Q  ;Source and Obj in same dir
- I ZTOS=8 Q $P($S(ZRO["(":$P($P(ZRO,"(",2),")"),1:ZRO)," ")_"/" ;Use first source dir.
- E  Q ""
+ ; If $ZRO is a single directory, e.g., xxx, returns that directory, e.g., xxx/
+ ; If $ZRO is of the form xxx yyy ... returns xxx/, unless xxx is a shared library, in which case it is discarded and the search continued.
+ ; If $ZRO is of the form www(xxx) ... or www(xxx yyy) ... returns xxx/
+ N %C,%D,%ZRO
+ S %ZRO=$ZRO
+ F %C=0:1 S %D=$P($S(($F(%ZRO_" "," ")>$F(%ZRO,"("))&$F(%ZRO,"("):$P($P(%ZRO,")"),"(",2),1:%ZRO)," ") Q:'(%D?.E1".so")  S %ZRO=$P(%ZRO,%D_" ",2) S:""=%ZRO $EC=",U255,"
+ Q %D_"/"
  ;
 DES S %D="%ZOSV^%ZTBKC1^%ZIS4^%ZISF^%ZISH^%XUCI" Q
  ;
