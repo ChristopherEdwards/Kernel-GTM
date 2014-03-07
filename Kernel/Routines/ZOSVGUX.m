@@ -1,8 +1,8 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;09/15/08  16:41
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ; 3/6/14 4:00P
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
- D:'($D(^XUTL("XUSYS","CNT"))#10)
+ I '$G(^XUTL("XUSYS","CNT")) D
  . N I,IO,LINE
  . S IO=$IO
  . O "FTOK":(SHELL="/bin/sh":COMMAND="$gtm_dist/mupip ftok "_$V("GVFILE","DEFAULT"):READONLY)::"PIPE" U "FTOK"
