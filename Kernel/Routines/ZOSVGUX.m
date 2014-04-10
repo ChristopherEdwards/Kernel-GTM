@@ -1,8 +1,8 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ; 3/6/14 4:00P
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ; 4/10/14 9:12P
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
- I '$G(^XUTL("XUSYS","CNT")) D
+ D:'($D(^XUTL("XUSYS","CNT"))#10)
  . N I,IO,LINE
  . S IO=$IO
  . O "FTOK":(SHELL="/bin/sh":COMMAND="$gtm_dist/mupip ftok "_$V("GVFILE","DEFAULT"):READONLY)::"PIPE" U "FTOK"
@@ -21,7 +21,7 @@ RTNDIR() ; primary routine source directory
  N DIR
  ; Remove any leading element of $ZRO that is a shared library (*.so) - no routines in a shared library
  S DIR=$ZRO F  Q:'$F(DIR,".so")!($F(DIR," ")<$F(DIR,".so "))  S DIR=$P(DIR," ",2,$L(DIR," "))
- Q:'$L(DIR) "" ; DIR is a null string if $ZRO consists only of shared libraries
+ S:'$L(DIR) $EC=",U255," ; DIR is a null string if $ZRO consists only of shared libraries, so no source directory
  ; If DIR starts with a single directory, or is just a directory (neither space nor paren found), 
  ; i.e., of the form xxxx ... return the directory xxx/
  Q:$F(DIR," ")'>$F(DIR,"(") $P(DIR," ",1)_"/"
@@ -65,10 +65,9 @@ UCICHECK(X) ;
  ;
 JOBPAR ; <=====
  N CMD,COMM,IO
- S IO=$IO
- S COMM="/proc/"_X_"/comm"
- O COMM:READONLY U COMM R CMD U IO C COMM
- S Y=$S("mumps"=CMD:^%ZOSF("PROD"),1:"")
+ S IO=$IO,COMM="/proc/"_X_"/comm"
+ O COMM:(READONLY:EXCEPTION="S Y="""" Q") U COMM R CMD U IO C COMM
+ S Y=$S("mumps"=$G(CMD):^%ZOSF("PROD"),1:"")
  Q
  ;
 SHARELIC(TYPE) ;Used by Cache implementations
@@ -97,7 +96,7 @@ DOLRO ;SAVE ENTIRE SYMBOL TABLE IN LOCATION SPECIFIED BY X
  ;S Y="%" F  S Y=$O(@Y) Q:Y=""  D
  ;. I $D(@Y)#2 S @(X_"Y)="_Y)
  ;. I $D(@Y)>9 S %X=Y_"(",%Y=X_"Y," D %XY^%RCR
- S Y="%" F  M:$D(@Y) @(X_"Y="_Y) S Y=$O(@Y) Q:Y=""
+ S Y="%" F  M:$D(@Y) @(X_"Y)="_Y) S Y=$O(@Y) Q:Y=""
  Q
  ;
 ORDER ;SAVE PART OF SYMBOL TABLE IN LOCATION SPECIFIED BY X
