@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ; 4/10/14 9:12P
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;09/15/08  16:41
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -66,7 +66,7 @@ UCICHECK(X) ;
 JOBPAR ; <=====
  N CMD,COMM,IO
  S IO=$IO,COMM="/proc/"_X_"/comm"
- O COMM:(READONLY:EXCEPTION="S Y="""" Q") U COMM R CMD U IO C COMM
+ O COMM:(READONLY:EXCEPTION="S Y="""" ZGOTO -1") U COMM:EXCEPTION="" R CMD U IO C COMM
  S Y=$S("mumps"=$G(CMD):^%ZOSF("PROD"),1:"")
  Q
  ;
@@ -96,7 +96,7 @@ DOLRO ;SAVE ENTIRE SYMBOL TABLE IN LOCATION SPECIFIED BY X
  ;S Y="%" F  S Y=$O(@Y) Q:Y=""  D
  ;. I $D(@Y)#2 S @(X_"Y)="_Y)
  ;. I $D(@Y)>9 S %X=Y_"(",%Y=X_"Y," D %XY^%RCR
- S Y="%" F  M:$D(@Y) @(X_"Y)="_Y) S Y=$O(@Y) Q:Y=""
+ S Y="%" F  M:$D(@Y) @(X_"Y="_Y) S Y=$O(@Y) Q:Y=""
  Q
  ;
 ORDER ;SAVE PART OF SYMBOL TABLE IN LOCATION SPECIFIED BY X
@@ -143,11 +143,13 @@ PRI() ;Check if a mixed OS enviroment.
  Q 1
  ;
 T0 ; start RT clock
- S %ZH0=$S(""'=$T(ZHOROLOG^%POSIX):$$ZHOROLOG^%POSIX,1:$H)
+ S XRT0=$S(""'=$T(ZHOROLOG^%POSIX):$$ZHOROLOG^%POSIX,1:$H)
  Q
  ;
-T1 ; store RT datum w/ZHDIF
- S %ZH1=$S(""'=$T(ZHOROLOG^%POSIX):$$ZHOROLOG^%POSIX,1:$H)
+T1 ; store RT datum
+ I ""'=$T(ZHOROLOG^%POSIX) S ^%ZRTL(3,XRTL,+$H,XRTN,$P($$ZHOROLOG^%POSIX,",",2))=XRT0
+ E  S ^%ZRTL(3,XRTL,+$H,$P($H,",",2))=XRT0
+ K XRT0
  Q
  ;
 ZHDIF ;Display dif of two $ZH's
