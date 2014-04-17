@@ -10,4 +10,4 @@ XREF(DA) ;TRIGGER TO SET THE REQUIRES TRANSMISSION FIELD if the NEW PERSON Enume
  S FDA(200,DA_",",902)="Y"
  D FILE^DIE("E","FDA","XUERR")
  ;what to do if can't set the field???
- Q 
+ Q

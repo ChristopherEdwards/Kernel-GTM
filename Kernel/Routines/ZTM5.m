@@ -1,5 +1,5 @@
 %ZTM5 ;SEA/RDS-TaskMan: Manager, Part 5 (Short Subroutines) ;10/01/08  14:35
- ;;8.0;KERNEL;**24,36,118,127,136,162,275,355,446**;JUL 10, 1995;Build 35
+ ;;8.0;KERNEL;**24,36,118,127,136,162,275,355,446**;JUL 10, 1995;Build 36
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;
 ER ;primary error trap for manager

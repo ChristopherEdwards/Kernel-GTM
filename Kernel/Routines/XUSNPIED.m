@@ -26,7 +26,7 @@ EDRLNPI(IEN) ; Edit AUTHORIZES RELEASE OF NPI field
  Q:$P($G(^VA(200,+$G(IEN),"NPI")),U,3)=1
  N DIE,DR,DA S DIE="^VA(200,",DA=IEN,DR="41.97////1" D ^DIE
  Q
- ; 
+ ;
 CLERXMPT ;
  D CLERXMPT^XUSNPIE1
  Q
@@ -71,7 +71,7 @@ CBOLIST ; list ^ delimited output to CBO exchange mail group.
  S COUNT=COUNT+1,@GLOBOUT@(COUNT)="--END"
  ; and generate mail message
  N XMTEXT,XMDUZ,XMY,XMSUB
- S XMTEXT=$E(GLOBOUT,1,$L(GLOBOUT)-1)_",",XMDUZ=0.5,XMY("VHACONPINPF@domain.ext")=""
+ S XMTEXT=$E(GLOBOUT,1,$L(GLOBOUT)-1)_",",XMDUZ=0.5,XMY("VHACONPINPF@VA.GOV")=""
  S XMSUB="NPI LIST "_DATE_" FOR "_ADDRESS_" ("_STATION_")"
  D ^XMD
  Q

@@ -1,5 +1,5 @@
 ZTMGRSET ;SF/RWF,PUG/TOAD - SET UP THE MGR ACCOUNT FOR THE SYSTEM ;02/13/2008
- ;;8.0;KERNEL;**34,36,69,94,121,127,136,191,275,355,446**;JUL 10, 1995;Build 35
+ ;;8.0;KERNEL;**34,36,69,94,121,127,136,191,275,355,446**;JUL 10, 1995;Build 36
  ;
  N %D,%S,I,OSMAX,U,X,X1,X2,Y,Z1,Z2,ZTOS,ZTMODE,SCR
  S ZTMODE=0
@@ -170,19 +170,22 @@ MOVE ; rename % routines
 COPY(FROM,TO) ;
  I ZTOS'=7,ZTOS'=8 X "ZL @FROM ZS @TO" Q
  ;For GT.M below
- N IO,PATH,COPY,CMD S PATH=$$R,IO=$IO
- S FROM="^"_FROM,TO=PATH_$TR(TO,"%","_")_".m"
- O TO:NEWINCVERSION U TO ZPRINT FROM U IO C TO
+ N PATH,COPY,CMD S PATH=$$R
+ S FROM=PATH_FROM_".m"
+ S TO=PATH_$TR(TO,"%","_")_".m"
+ S COPY=$S(ZTOS=7:"COPY",1:"cp")
+ S CMD=COPY_" "_FROM_" "_TO
+ X "ZSYSTEM CMD"
  Q
  ;
 R() ; routine directory for GT.M
- ; If $ZRO is a single directory, e.g., xxx, returns that directory, e.g., xxx/
- ; If $ZRO is of the form xxx yyy ... returns xxx/, unless xxx is a shared library, in which case it is discarded and the search continued.
- ; If $ZRO is of the form www(xxx) ... or www(xxx yyy) ... returns xxx/
- N %C,%D,%ZRO
- S %ZRO=$ZRO
- F %C=0:1 S %D=$P($S(($F(%ZRO_" "," ")>$F(%ZRO,"("))&$F(%ZRO,"("):$P($P(%ZRO,")"),"(",2),1:%ZRO)," ") Q:'(%D?.E1".so")  S %ZRO=$P(%ZRO,%D_" ",2) S:""=%ZRO $EC=",U255,"
- Q %D_"/"
+ N ZRO X "S ZRO=$ZRO"
+ I ZTOS=7 D  Q $S(ZRO["(":$P($P(ZRO,"(",2),")"),1:ZRO)
+ . S ZRO=$P(ZRO,",")
+ . I ZRO["/SRC=" S ZRO=$P(ZRO,"=",2) Q  ;Source dir
+ . S ZRO=$S(ZRO["/":$P(ZRO,"/"),1:ZRO) Q  ;Source and Obj in same dir
+ I ZTOS=8 Q $P($S(ZRO["(":$P($P(ZRO,"(",2),")"),1:ZRO)," ")_"/" ;Use first source dir.
+ E  Q ""
  ;
 DES S %D="%ZOSV^%ZTBKC1^%ZIS4^%ZISF^%ZISH^%XUCI" Q
  ;

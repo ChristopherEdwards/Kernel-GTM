@@ -5,7 +5,7 @@ PAUSE R !!,"  **> Press 'RETURN' to continue, '^' to stop, or '?[option text]' f
  ;
 PAUSE1 R !!,"  **> Press 'RETURN' to continue, '^' to stop: ",XQL:DTIME S XQL=$S(XQL[U:-1,1:XQLN) W @IOF Q
  ;
-SHOW  F  S XQX=$O(^XUTL("XQO",XQDIC,XQX)) Q:XQX=U!(XQL<0)!(XQX="")  I $P(^(XQX),U,2) D
+SHOW F  S XQX=$O(^XUTL("XQO",XQDIC,XQX)) Q:XQX=U!(XQL<0)!(XQX="")  I $P(^(XQX),U,2) D
  .S XQHY=^(XQX)
  .D PRNT
  .Q  ;G SHOW

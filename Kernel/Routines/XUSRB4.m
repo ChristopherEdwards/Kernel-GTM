@@ -1,5 +1,5 @@
-XUSRB4 ;ISF/RWF - Build a temporary sign-on token ;10/12/11  14:53
- ;;8.0;KERNEL;**150,337,395,419,437,499,523,573,596**;Jul 10, 1995;Build 1
+XUSRB4 ;ISF/RWF - Build a temporary sign-on token ;01/06/10  09:26
+ ;;8.0;KERNEL;**150,337,395,419,437,499,523**;Jul 10, 1995;Build 16
  ;Per VHA Directive 2004-038, this routine should not be modified
  Q
  ;
@@ -83,8 +83,8 @@ CHECK(HL,TOUT) ;Check a Token
  S S=$$DECRYP^XUSRB1($E(S,2,$L(S)-1)) I S="" Q "0^Bad Token"
  S J=$P(S,"|"),T=$P(S,"|",2),D=$P(S,"|",3),M=$P(S,"|",4)
  ;Check token time
- S %=$$H3^%ZTM($H),TOUT=$G(TOUT,90) ; P573 changed 20 to 90 JLI
- I T+TOUT<% D REMOVE(HL) Q "0^Token Expired" ;Token good for TOUT or 90 seconds
+ S %=$$H3^%ZTM($H),TOUT=$G(TOUT,20)
+ I T+TOUT<% D REMOVE(HL) Q "0^Token Expired" ;Token good for TOUT or 20 seconds
  ;Check job
  ;Check that token has handle
  I M'=HL Q "0^Bad Token"
@@ -96,7 +96,6 @@ CHECK(HL,TOUT) ;Check a Token
  S CLNM=$S($L($G(IO("CLNM"))):IO("CLNM"),$L(CLNM):CLNM,1:"") ;p499
  I $L($G(^XTMP(HL,"D3"))),^XTMP(HL,"D3")=% S T=1
  I 'T,$L(CLNM),$G(^XTMP(HL,"CLNM"))=IO("CLNM") S T=1
- I 'T,$$LOW^XLFSTR($S($L($G(IO("ZIO"))):IO("ZIO"),1:$G(IO)))[$P($G(^XTMP(HL,"CLNM")),".") S T=1  ;ram p596
  I 'T Q "0^Different IP" ;p499
  I $D(^XTMP(HL,"D2")),D>0 S DUZ(2)=^XTMP(HL,"D2")
  D USER^XUS(D)

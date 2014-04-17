@@ -1,5 +1,5 @@
 %ZTMS ;SEA/RDS-TaskMan: Submanager, (Entry & Trap) ;09/25/08  16:07
- ;;8.0;KERNEL;**2,18,24,36,67,94,118,127,136,162,275,446**;Jul 10, 1995;Build 35
+ ;;8.0;KERNEL;**2,18,24,36,67,94,118,127,136,162,275,446**;Jul 10, 1995;Build 36
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;
 START ;Bottom level of submanager

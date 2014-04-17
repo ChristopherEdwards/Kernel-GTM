@@ -1,5 +1,5 @@
 %ZTMS1 ;SEA/RDS-TaskMan: Submanager, (Loop & Get Task) ;10/07/08  15:46
- ;;8.0;KERNEL;**36,49,104,118,127,136,275,446**;JUL 10, 1995;Build 35
+ ;;8.0;KERNEL;**36,49,104,118,127,136,275,446**;JUL 10, 1995;Build 36
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;Use ZTLKTM for Lock timeout. p446
 SUBMGR ;START--outer submanager loop

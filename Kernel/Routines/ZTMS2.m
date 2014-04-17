@@ -1,5 +1,5 @@
 %ZTMS2 ;SEA/RDS-TaskMan: Submanager, Part 4 (Unload, Get Device) ;2/19/08  13:38
- ;;8.0;KERNEL;**2,18,23,36,67,118,127,163,167,175,199,275,446**;Jul 10, 1995;Build 35
+ ;;8.0;KERNEL;**2,18,23,36,67,118,127,163,167,175,199,275,446**;Jul 10, 1995;Build 36
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  ;^%ZTSK(ZTSK),^%ZTSCH("DEV",IO) is locked on entry or return from GETNEXT

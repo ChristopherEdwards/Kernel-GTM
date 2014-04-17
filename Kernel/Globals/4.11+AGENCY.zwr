@@ -15,6 +15,7 @@ ZWR
 ^DIC(4.11,6,0)="OTHER^O"
 ^DIC(4.11,7,0)="EHR^E"
 ^DIC(4.11,8,0)="COAST GUARD^USCG"
+^DIC(4.11,"%",0)="^1.005^^0"
 ^DIC(4.11,"%D",0)="^^1^1^2940316^^"
 ^DIC(4.11,"%D",1,0)="This file replaces the set field that had been used for agency."
 ^DIC(4.11,"B","AIR FORCE",2)=""

@@ -1,5 +1,5 @@
-%ZTM ;SEA/RDS-TaskMan: Manager, Part 1 (Main Loop) ;10/02/08  09:00
- ;;8.0;KERNEL;**24,36,64,67,118,127,136,275,355,446**;JUL 10, 1995;Build 35
+%ZTM ;SEA/RDS-TaskMan: Manager, Part 1 (Main Loop) ; 4/17/14 1:44P
+ ;;8.0;KERNEL;**24,36,64,67,118,127,136,275,355,446**;JUL 10, 1995;Build 36
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;%ZTCHK is set to 1 @ top of SCHQ, set to 0 if sent a task to SM
 LOOP ;Taskman's Main Loop

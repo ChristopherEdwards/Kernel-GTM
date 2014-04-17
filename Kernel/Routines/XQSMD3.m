@@ -1,5 +1,5 @@
 XQSMD3 ; SEA/MJM - Secure MenuMan Delegation utilities; 12/11/07
- ;;8.0;KERNEL;**64,475**;Jul 10, 1995;Build 8
+ ;;8.0;KERNEL;**64,475**;Jul 10, 1995;Build 9
 INIT S U="^",XQNGO=1,XQLEV="" S (XQDOP,XQDEL,XQPRO)=0 S:DUZ(0)="@"!($D(^XUSEC("XUMGR",DUZ))) XQPRO=1
  I $S('$D(IOM):1,IOM=0:1,'$D(IOSL):1,'$L(IOSL):1,'$D(IOF):1,'$L(IOF):1,'$D(IO):1,1:0) S IOP="HOME" D ^%ZIS I POP W !!,"*** DEVICE ERROR ***",!,?5,"-exiting-" G OUT
  S:'$D(DTIME)#2 DTIME=60

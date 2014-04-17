@@ -4,7 +4,7 @@ XUPSHL7B ;ALB/CMC - SEGMENT BUILDING UTILTIES ;8/9/2010
  ;Copied from VAFHLU - 9/5/2008 BPFO/JRP
  ;
  Q
-MAKEIT(SEGNAME,SEGARR,FIRST245,ADTLNODE)        ;Make segment
+MAKEIT(SEGNAME,SEGARR,FIRST245,ADTLNODE) ;Make segment
  ;Input  : SEGNAME - Name of segment being built
  ;         SEGARR - Array continue segment data
  ;           SEGARR(X) = Value for sequence N

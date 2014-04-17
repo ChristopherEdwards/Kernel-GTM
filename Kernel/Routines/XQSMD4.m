@@ -132,7 +132,7 @@ HLPNAME ;
  Q
 TYPE(XQT) ;
  Q $S(XQT="P":"Print",XQT="I":"Inquire",XQT="E":"Edit",1:"Menu")
-ASKNAME(XQOPNM,XQNMSP,XQTYPE)  ;Check for a valid option names.
+ASKNAME(XQOPNM,XQNMSP,XQTYPE) ;Check for a valid option names.
  ;Called by ^XQSMDFM, too.
  ;XU*8*428 also allows for local namespaces, e.g., A5A, AFS, etc.
  F  D  Q:$D(DIRUT)!$D(XQOPNM)

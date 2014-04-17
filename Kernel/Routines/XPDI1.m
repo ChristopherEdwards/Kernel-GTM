@@ -1,9 +1,10 @@
-XPDI1 ;SFISC/RSD - Cont of Install Process ;10/28/2002  17:14
- ;;8.0;KERNEL;**58,61,95,108,229,275**;Jul 10, 1995
+XPDI1 ;SFISC/RSD - Cont of Install Process ; 8/30/04 9:45am
+ ;;8.0;KERNEL;**58,61,95,108,229,275,L33**;Jul 10, 1995
  ;lookup into file 9.7, XPDS=DIC("S") for lookup
  ;return 0-fail or ien, XPDT=array of linked builds
 LOOK(XPDS,XPDL) ;lookup Install
  N DIC,Y,XPD,XPDIT,%
+ S:$D(AAQP) DIC("B")=AAQP ;MPLS XU*L33 used only by XPDZPAT and AAQMENU
  S DIC(0)="QEAMZ",DIC="^XPD(9.7,"
  S:$L($G(XPDS)) DIC("S")=XPDS
  D ^DIC Q:Y<0 0

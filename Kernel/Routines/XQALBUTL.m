@@ -1,69 +1,56 @@
-XQALBUTL ; ISC-SF/JLI - Utilities for OE/RR notifications ;07/13/12  13:24
- ;;8.0;KERNEL;**114,125,171,285,602**;Jul 10, 1995;Build 9
- ;Per VHA Directive 2004-038, this routine should not be modified
+XQALBUTL ; slc/CLA,ISC-SF.SEA/JLI - Utilities for OE/RR notifications ;8/26/03  15:21
+ ;;8.0;KERNEL;**114,125,171,285**;Jul 10, 1995
  ; PROVIDES FUNCTIONALITY USED BY ORBUTL
 EN ;
  Q
-RECIPURG(XQX) ; SR. ICR #3010 (supported)
- ; Called by option ORB PURG RECIP - purge existing notifs: recipient/DUZ
+RECIPURG(XQX) ;called by option ORB PURG RECIP - purge existing notifs: recipient/DUZ
  N XQK,XQA,XQADAT S XQADAT=$$NOW^XLFDT()
  F XQK=0:0 S XQK=$O(^XTV(8992,XQX,"XQA",XQK)) Q:XQK'>0  S XQA=$P(^(XQK,0),"^",2) D OLDPURG
  Q
  ;
-PTPURG(DFN) ; SR. ICR #3010 (supported)
- ; Called by option ORB PURG PATIENT - purge existing notifs: patient
+PTPURG(DFN) ;called by option ORB PURG PATIENT - purge existing notifs: patient
  N XQX,XQK,XQA,XQADAT S XQADAT=$$NOW^XLFDT()
  F XQX=0:0 S XQX=$O(^XTV(8992,XQX)) Q:XQX'>0  F XQK=0:0 S XQK=$O(^XTV(8992,XQX,"XQA",XQK)) Q:XQK'>0  S XQA=$P(^(XQK,0),"^",2) I $P($P(XQA,";"),",",2)=DFN D OLDPURG
  Q
  ;
-NOTIPURG(Y) ; SR. ICR #3010 (supported)
- ; Called by option ORB PURG NOTIF - purge existing notifs: notification
+NOTIPURG(Y) ;called by option ORB PURG NOTIF - purge existing notifs: notification
  N XQX,XQK,XQA,XQADAT S XQADAT=$$NOW^XLFDT()
  F XQX=0:0 S XQX=$O(^XTV(8992,XQX)) Q:XQX'>0  F XQK=0:0 S XQK=$O(^XTV(8992,XQX,"XQA",XQK)) Q:XQK'>0  S XQA=$P(^(XQK,0),"^",2) I $P($P(XQA,";"),",",3)=+Y D OLDPURG
  Q
- ;
 OLDPURG ;called by RECIPURG, PTPURG, NOTIPURG - KILLs specified alert entries
  N XQAID S XQAID=XQA D DELA^XQALDEL ; JLI 9-3-99 FIXES NULL SUBSCRIPT IN DELA+1^XQALDEL
  Q
  ;
-AHISTORY(XQAID,ROOT) ; SR. ICR #2778 (supported)
- ; Returns information from alert tracking file for alert with XQAID as its alert ID.  The data is returned desendent from the closed root passed in ROOT.
+AHISTORY(XQAID,ROOT) ; SR  Returns information from alert tracking file for alert with XQAID as its alert ID.  The data is returned desendent from the closed root passed in ROOT.
  N X
  K @ROOT
  S X=$O(^XTV(8992.1,"B",XQAID,0)) I X'>0 Q
  M @ROOT=^XTV(8992.1,X)
  Q
  ;
-PENDING(XQAUSER,XQAID) ; SR. ICR #2778 (supported)
- ; Returns whether the user specified has the alert indicated by XQAID pending.  (1=YES, 0=NO)
+PENDING(XQAUSER,XQAID) ; SR. Returns whether the user specified has the alert indicated by XQAID pending.  (1=YES, 0=NO)
  Q $D(^XTV(8992,"AXQA",XQAID,XQAUSER))/10
  ;
-PKGPEND(XQAUSER,XQAPKG) ; SR. ICR #2778 (supported)
- ; Returns 1 if the user indicated by XQAUSER has any pending alerts with the first ';'-piece of XQAID contains the package identifier indicated by XQAPKG.
+PKGPEND(XQAUSER,XQAPKG) ; SR. Returns 1 if the user indicated by XQAUSER has any pending alerts with the first ';'-piece of XQAID contains the package identifier indicated by XQAPKG.
  N I,X
  F I=0:0 S X="",I=$O(^XTV(8992,XQAUSER,"XQA",I)) Q:I'>0  S X=$P($P(^(I,0),U,2),";") I X[XQAPKG Q
  Q $S(X'="":1,1:0)
  ;
-ALERTDAT(XQAID,ROOT) ; SR. ICR #2778 (supported)
- ; Returns information from alert tracking file for alert with XQAID in array XQALERTD.  If the alert is not present, the array is undefined.
+ALERTDAT(XQAID,ROOT) ; SR. Returns information from alert tracking file for alert with XQAID in array XQALERTD.  If the alert is not present, the array is undefined.
  N IEN
  I $G(ROOT)="" S ROOT="XQALERTD"
  K @ROOT
  S IEN=$O(^XTV(8992.1,"B",XQAID,0)) I IEN'>0 S @ROOT="" Q
  D MAKELIST(ROOT,8992.1,(IEN_","))
  Q
- ;
-USERLIST(XQAID,ROOT) ; SR. ICR #2778 (supported)
- ; Returns recipients of alert with ID of XQAID from alert tracking file in array XQALUSER
+USERLIST(XQAID,ROOT) ; SR. Returns recipients of alert with ID of XQAID from alert tracking file in array XQALUSER
  N IEN,N,I,X
  I $G(ROOT)="" S ROOT="XQALUSRS"
  K @ROOT
  S IEN=$O(^XTV(8992.1,"B",XQAID,0)) I IEN'>0 S @ROOT="" Q
  S N=0 F I=0:0 S I=$O(^XTV(8992.1,IEN,20,I)) Q:I'>0  S N=N+1,X=+^(I,0),X=X_U_$$GET1^DIQ(8992.11,(I_","_IEN_","),.01),@ROOT@(N)=X
  Q
- ;
-USERDATA(XQAID,XQAUSER,ROOT) ; SR. ICR #2778 (supported)
- ; Returns information from alert tracking file related to alert with ID of XQAID for user specified by XQAUSER
+USERDATA(XQAID,XQAUSER,ROOT) ; SR. returns information from alert tracking file related to alert with ID of XQAID for user specified by XQAUSER
  N IEN,IEN2
  I $G(ROOT)="" S ROOT="XQALUSER"
  K @ROOT
@@ -71,7 +58,6 @@ USERDATA(XQAID,XQAUSER,ROOT) ; SR. ICR #2778 (supported)
  S IEN2=$O(^XTV(8992.1,IEN,20,"B",XQAUSER,0)) I IEN2'>0 S @ROOT="" Q
  D MAKELIST(ROOT,8992.11,(IEN2_","_IEN_","))
  Q
- ;
 MAKELIST(ARRAY,FILE,IENS) ; Makes a list of fields as subscripts in ARRAY with the values of the fields as the value.  If internal and external differ, the value is given as internal^external.
  N ROOT,FIELD,X
  K @ARRAY
@@ -99,7 +85,7 @@ MAKELIST(ARRAY,FILE,IENS) ; Makes a list of fields as subscripts in ARRAY with t
  ;;                  RESULTS(2) = "297^1"   User 297 - deleted
  ;;                  RESULTS(3) = "673^0"   User 673 - not deleted
  ;;
-DELSTAT(XQAIDVAL,VALUES) ; .SR ICR #3197 (supported)
+DELSTAT(XQAIDVAL,VALUES) ; .SR
  N XQAX,XQADATE,XQAID,XQAFN,I,X,X1,X
  S XQAX=XQAIDVAL,XQADATE=0,XQAID="" K VALUES S VALUES=0
  F  S XQAX=$O(^XTV(8992.1,"B",XQAX)) Q:XQAX'[XQAIDVAL  I XQADATE<$P(XQAX,";",3) S XQADATE=$P(XQAX,";",3),XQAID=XQAX

@@ -22,7 +22,7 @@ XUSNPIX3 ;OAK_BP/CMW - NPI EXTRACT REPORT ;01-OCT-06
  ;      Piece 4 => Last Date Compiled
  ;      Piece 5 => $H last run start time
  ;      Piece 6 => $H last run completion time
- ;      
+ ;
  ;      Entry Point - ENT called from XUSNPIX1
  ;
  Q
@@ -109,9 +109,9 @@ INITA ; set up global variables (site and inst info)
  ;
  ; Pull site info
  S SINFO=$$SITE^VASITE
- ; Station Number        
+ ; Station Number
  S SITE=$P(SINFO,U,3)
- ; Institution   
+ ; Institution
  S INST=$P(SINFO,U)
  ;
  ; Get Pay-to-Provider for all Non-VA records (type 1 & 2)

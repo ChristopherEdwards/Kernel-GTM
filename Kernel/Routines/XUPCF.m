@@ -3,14 +3,14 @@ XUPCF ;BT/BP-OAK Person Class File APIs; 2/4/2010
  ;;Per VHA Directive 2004-038, this routine should not be modified
  ;;these APIs are for updating Person Class File and for Kernal Team only.
  ;;
- ;;REFERENCED BY: PROVIDER TYPE(B), PROVIDER TYPE(C), CLASSIFICATION(D), 
+ ;;REFERENCED BY: PROVIDER TYPE(B), PROVIDER TYPE(C), CLASSIFICATION(D),
  ;;              AREA OF SPECIALIZATION(E), VA CODE(F), X12 CODE(G)
- ;;^USC(8932.1,D0,0)= (#.01) PROVIDER TYPE [1F] ^ (#1) CLASSIFICATION [2F] ^ 
- ;;               ==>(#2) AREA OF SPECIALIZATION [3F] ^ (#3) STATUS [4S] ^ (#4) 
- ;;               ==>DATE INACTIVATED [5D] ^ (#5) VA CODE [6F] ^ (#6) X12 CODE 
- ;;               ==>[7F] ^ (#7) reserved [8F] ^ (#8) SPECIALTY CODE [9F] ^ 
+ ;;^USC(8932.1,D0,0)= (#.01) PROVIDER TYPE [1F] ^ (#1) CLASSIFICATION [2F] ^
+ ;;               ==>(#2) AREA OF SPECIALIZATION [3F] ^ (#3) STATUS [4S] ^ (#4)
+ ;;               ==>DATE INACTIVATED [5D] ^ (#5) VA CODE [6F] ^ (#6) X12 CODE
+ ;;               ==>[7F] ^ (#7) reserved [8F] ^ (#8) SPECIALTY CODE [9F] ^
  ;;^USC(8932.1,D0,11,0)=^8932.111^^  (#11) DEFINITION
- ;;^USC(8932.1,D0,11,D1,0)= (#.01) DEFINITION [1W] ^ 
+ ;;^USC(8932.1,D0,11,D1,0)= (#.01) DEFINITION [1W] ^
  ;;^USC(8932.1,D0,90002)=  ^ (#90002) INDIVIDUAL/NON [2S] ^
  Q
  ;

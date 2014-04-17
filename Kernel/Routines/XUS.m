@@ -1,8 +1,24 @@
-XUS ;SFISC/STAFF - SIGNON ;11/29/2011
- ;;8.0;KERNEL;**16,26,49,59,149,180,265,337,419,434,584**;Jul 10, 1995;Build 6
- ;Per VHA Directive 2004-038, this routine should not be modified
+XUS     ;SFISC/STAFF - SIGNON ;8:23 AM  23 Apr 2011
+ ;;8.0;KERNEL;**16,26,49,59,149,180,265,337,419,434,437**;Jul 10, 1995;Build 6
+ ; Modified from FOIA VISTA,
+ ; Copyright (C) 2007 WorldVistA
+ ;
+ ; This program is free software; you can redistribute it and/or modify
+ ; it under the terms of the GNU General Public License as published by
+ ; the Free Software Foundation; either version 2 of the License, or
+ ; (at your option) any later version.
+ ;
+ ; This program is distributed in the hope that it will be useful,
+ ; but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ; GNU General Public License for more details.
+ ;
+ ; You should have received a copy of the GNU General Public License
+ ; along with this program; if not, write to the Free Software
+ ; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
+ ;
  ;Sign-on message numbers are 30810.51 to 30810.99
- S U="^" D INTRO^XUS1A()
+ S U="^" D DT^DICRW D INTRO^XUS1A()
  K  K ^XUTL("ZISPARAM",$I)
  S U="^",XQXFLG("GUI")="^"
  W ! S $Y=0 D SET1(1) I POP S XUM=3 G NO ;Sets DUZ("LANG")
@@ -90,6 +106,9 @@ CHECKAV(X1) ;Check A/V code return DUZ or Zero. (Called from XUSRB)
  . I $E(X1,8,9)="~2" S IEN=$$CHKCCOW^XUSRB4($E(X1,8,255))
  . Q
  ;End CCOW
+ ; WV p437 ;Allow case sensitivefor VOE
+ S X1=$S($$GET^XPAR("SYS","XU VC CASE SENSITIVE"):$$UP($P(X1,";",1))_";"_$P(X1,";",2),1:$$UP(X1))
+ ; End WV change
  S X1=$$UP(X1) S:X1[":" XUTT=1,X1=$TR(X1,":")
  S X=$P(X1,";") Q:X="^" -1 S:XUF %1="Access: "_X
  Q:X'?1.20ANP 0
@@ -108,8 +127,8 @@ USER(IX) ;Build XUSER
  S XUSER(0)=$G(^VA(200,+IX,0)),XUSER(1)=$G(^(.1)),XUSER(1.1)=$G(^(1.1))
  Q
  ;
-XUVOL ;Setup XUENV, XUCI,XQVOL,XUVOL,XUOSVER
- S U="^" D GETENV^%ZOSV S XUENV=Y,XUCI=$P(Y,U,1),XQVOL=$P(Y,U,2),XUOSVER=$$VERSION^%ZOSV
+XUVOL ;Setup XUENV, XUCI,XQVOL,XUVOL
+ S U="^" D GETENV^%ZOSV S XUENV=Y,XUCI=$P(Y,U,1),XQVOL=$P(Y,U,2)
  S X=$O(^XTV(8989.3,1,4,"B",XQVOL,0)),XUVOL=$S(X>0:^XTV(8989.3,1,4,X,0),1:XQVOL_"^y^1")
  Q
  ;

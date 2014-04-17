@@ -1,6 +1,5 @@
-XQ ; SEA/MJM - Menu driver (Part 1) ;04/19/12  08:27
- ;;8.0;KERNEL;**9,46,94,103,157,570,593**;Jul 10, 1995;Build 7
- ;Per VHA Directive 2004-038, this routine should not be modified
+XQ ; SEA/MJM - Menu driver (Part 1) ;05/06/2002  10:21
+ ;;8.0;KERNEL;**9,46,94,103,157**;Jul 10, 1995
  D LOGRSRC^%ZOSV("$XQ MENU DRIVER$",0,1)
  D INIT^XQ12 Q:'$D(XQY)
  I $D(XQUR),$E(XQUR,1,2)="^^" S XQRB=1,XQJS=4
@@ -11,8 +10,7 @@ M I '$D(XQVOL) S XQVOL=$G(^XUTL("XQ",$J,"XQVOL")) I '$L(XQVOL) D GETENV^%ZOSV S 
  I $G(^%ZIS(14.5,"LOGON",XQVOL)) S XQNOLOG="" G H^XUS
  S:$S('$D(XQY0):1,'$L(XQY0):1,1:0) XQY0=^DIC(19,XQY,0) S XQT=$P(XQY0,U,4) G:XQT="" M3 K:'$D(XQJS) XQUR K X,XQNOGO,XQR,XQUIT,XQUEFLG ;,XQSV
  I $D(XQAUDIT),XQAUDIT D LOGOPT^XQ12
- ;I $P(XQY0,U,18) D CHKQUE^XQ92 I XQUEFLG S XQNOGO="" ;Removed - p570
- I $G(XQY)>0 D CHKQUE^XQ92 I XQUEFLG S XQNOGO="" ;Added - p570
+ I $P(XQY0,U,18) D CHKQUE^XQ92 I XQUEFLG S XQNOGO=""
  ;
  ;Execute the Entry Action and look for XQUIT
  D:'$D(XQM3)&("LOQX"'[XQT) LO K XQM3 I $D(XQUIT) D
@@ -31,13 +29,7 @@ M I '$D(XQVOL) S XQVOL=$G(^XUTL("XQ",$J,"XQVOL")) I '$L(XQVOL) D GETENV^%ZOSV S 
 M1 ;
  D LOGRSRC^%ZOSV("$XQ MENU DRIVER$",0,1)
  Q:XQY<1!'$D(^XUTL("XQ",$J,"T"))  D:'$D(XQXFLG) ABT^XQ12
- ;Modified - p593 to display <TEST ACCOUNT> if not a production VistA system
- ;D:'$D(XQABOLD)&(+XQXFLG) ABLOG^XQ12 K XQABOLD W ! S XQUR=0,XQTT=^XUTL("XQ",$J,"T"),XQDIC=XQY,XQAA="Select "_$S($D(DUZ("SAV")):$P(DUZ("SAV"),U,3)_"'s ",1:"")_$P(XQY0,U,2)_" Option: " S:$D(XQMM("B")) XQAA=XQAA_XQMM("B")_"//"
- S XQXQTEST=$S($D(DUZ("TEST")):" <TEST ACCOUNT>",1:"")
- D:'$D(XQABOLD)&(+XQXFLG) ABLOG^XQ12 K XQABOLD W ! S XQUR=0,XQTT=^XUTL("XQ",$J,"T"),XQDIC=XQY S XQAA="Select "_$S($D(DUZ("SAV")):$P(DUZ("SAV"),U,3)_"'s ",1:"")_$P(XQY0,U,2)
- S XQAA=XQAA_XQXQTEST_" Option: " S:$D(XQMM("B")) XQAA=XQAA_XQMM("B")_"//"
- K XQXQTEST
- ;end of p593 modifications
+ D:'$D(XQABOLD)&(+XQXFLG) ABLOG^XQ12 K XQABOLD W ! S XQUR=0,XQTT=^XUTL("XQ",$J,"T"),XQDIC=XQY,XQAA="Select "_$S($D(DUZ("SAV")):$P(DUZ("SAV"),U,3)_"'s ",1:"")_$P(XQY0,U,2)_" Option: " S:$D(XQMM("B")) XQAA=XQAA_XQMM("B")_"//"
  S:$S('XQTT:1,1:+$P(^XUTL("XQ",$J,XQTT),U,1)'=XQY) ^("T")=XQTT+1,^(XQTT+1)=XQY_XQPSM_U_XQY0 I $D(DUZ("AUTO")),DUZ("AUTO"),'$D(XQMM("J")),'$D(XQMM("N")) G EN^XQ2
  K:'$D(XQMM("J")) XQMM("N")
 M2 ;
@@ -81,8 +73,6 @@ LO I $P(XQY0,U,4)'="A",$P(XQY0,U,14),$D(^DIC(19,+XQY,20)),$L(^(20)) X ^(20) ;W "
  Q
  ;
 SETSV ;Record where we are now for posterity in XQSV
- ; ZEXCEPT: XQSV - global variable recording current VistA menu
- ; ZEXCEPT: XQY  - global variable recording current VistA menu
  N %
  S %=^XUTL("XQ",$J,^XUTL("XQ",$J,"T"))
  S XQSV=""

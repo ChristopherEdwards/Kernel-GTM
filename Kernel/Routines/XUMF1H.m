@@ -1,5 +1,5 @@
 XUMF1H ;ISS/RAM - MFS Handler ;6/27/06  07:50
- ;;8.0;KERNEL;**407,474**;Jul 10, 1995;Build 12
+ ;;8.0;KERNEL;**407,474**;Jul 10, 1995;Build 13
  ;Per VHA Directive 10-92-142, this routine should not be modified
  ;
  ; This routine handles Master File HL7 messages.

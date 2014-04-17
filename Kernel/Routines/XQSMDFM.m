@@ -2,7 +2,7 @@ XQSMDFM ;ISC-SF(SEA)/JLI,MJM - PERMIT USER TO BUILD LIMITED FM OPTIONS ;01/25/20
  ;;8.0;KERNEL;**510**;Jul 10, 1995;Build 6
  ; Per VHA Directive 2004-038, this routine should not be modified.
  ; Option: XQSMD LIMITED FM OPTIONS
-RULES ;
+RULES   ;
  N XQNMSP,XQTYPE
  D NAMESP^XQSMD4(.XQNMSP) Q:'$D(XQNMSP)  ; User must have namespace to use.
  D ASKTYPE(.XQTYPE) Q:'$D(XQTYPE)
@@ -21,7 +21,7 @@ ASKTYPE(XQTYPE) ;
  D ^DIR Q:$D(DIRUT)
  S XQTYPE=Y
  Q
-D ; Delete
+D       ; Delete
  N DIC,X,Y,XQOPT
  S DIC("A")="Select Option to Delete: "
  S DIC(0)="AEQMZ"
@@ -37,7 +37,7 @@ D ; Delete
  D ^DIR Q:'Y
  D DELETE^XQSMD4(.XQOPT)
  Q
-E ; Edit
+E       ; Edit
  N XQTMPLE,DIR,X,Y,DIRUT,DR
  D ASKTMPL("Edit","^DIE(",.XQTMPLE) Q:'$D(XQTMPLE)
  S DIR(0)="Y"
@@ -48,14 +48,14 @@ E ; Edit
  S DR="1;3.5;4///E;30///"_XQTMPLE("FGLOB")_";31///AEMQ"_$S(XQTMPLE("ADD"):"L",1:"")_";50///"_XQTMPLE("FGLOB")_";51///["_XQTMPLE("NAME")_"];"
  D CRE8OPT(DR)
  Q
-I ; Inquire
+I       ; Inquire
  N XQTMPLP,DR
  D ASKTMPL("Print","^DIPT(",.XQTMPLP,1) Q:'$D(XQTMPLP)
  S DR="1;3.5;4///I;30///"_XQTMPLP("FGLOB")_";31///AEMQ;80///"_XQTMPLP("FGLOB")_";"
  I $D(XQTMPLP("NAME")) S DR=DR_"63///["_XQTMPLP("NAME")_"];"
  D CRE8OPT(DR)
  Q
-P ; Print
+P       ; Print
  N XQTMPLP,XQTMPLS,DR
  D ASKTMPL("Sort","^DIBT(",.XQTMPLS) Q:'$D(XQTMPLS)
  S XQTMPLP("FNUM")=XQTMPLS("FNUM"),XQTMPLP("FNAME")=XQTMPLS("FNAME"),XQTMPLP("FGLOB")=XQTMPLS("FGLOB")
@@ -63,7 +63,7 @@ P ; Print
  S DR="1;3.5;4///P;60///"_XQTMPLP("FGLOB")_";62///0;63///["_XQTMPLP("NAME")_"];64///["_XQTMPLS("NAME")_"];"
  D CRE8OPT(DR)
  Q
-ASKTMPL(XQADJ,XQFILE,XQTMPL,XQOPTNL) ;
+ASKTMPL(XQADJ,XQFILE,XQTMPL,XQOPTNL)    ;
  N DIC,X,Y,DTOUT,DUOUT
  I '$D(XQTMPL("FNUM")) D ASKFILE(.XQTMPL) Q:'$D(XQTMPL("FNUM"))
  S DIC("A")="Select "_XQADJ_" Template"_$S($G(XQOPTNL):" (Optional)",1:"")_": "
@@ -87,15 +87,15 @@ ASKFILE(XQTMPL) ;
  S XQTMPL("FNAME")=$P(Y,U,2)
  S XQTMPL("FGLOB")=$P(^DIC(XQTMPL("FNUM"),0,"GL"),U,2)
  Q
-CRE8OPT(DR) ;
+CRE8OPT(DR)     ;
  N DIE,DA,XQOPT,DIC,DLAYGO,X
-AGAIN ;
+AGAIN   ;
  D ASKOPT^XQSMD4(.XQOPT,XQTYPE) Q:'$D(XQOPT)
  I 'XQOPT("NEW") I '$$SURE K XQOPT G AGAIN
  S DIE=19,DA=XQOPT("IEN") D ^DIE
  S DIC="^VA(200,DUZ,19.5,",X=XQOPT("NAME"),DIC(0)="MLX",DA(1)=DUZ,DLAYGO=200 D ^DIC
  Q
-SURE() ;
+SURE()  ;
  N DIR,X,Y,XQT
  S XQT=$P(^DIC(19,XQOPT("IEN"),0),U,4)
  W !,"This is an existing "_$$TYPE^XQSMD4(XQT)_" option."
@@ -105,7 +105,7 @@ SURE() ;
  S DIR("B")="No"
  D ^DIR
  Q Y
-ACCESS(XQFNUM) ; See if user has file access
+ACCESS(XQFNUM)  ; See if user has file access
  N XQYZ,XQNODE,XQPIECE
  I XQTYPE="E" S XQNODE="WR",XQPIECE=6
  E  S XQNODE="RD",XQPIECE=5

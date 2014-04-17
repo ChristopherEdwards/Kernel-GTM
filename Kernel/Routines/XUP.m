@@ -1,5 +1,5 @@
 XUP ;SFISC/RWF - Setup enviroment for programmers ;1/30/08  11:12
- ;;8.0;KERNEL;**208,258,284,432,469**;Jul 10, 1995;Build 7
+ ;;8.0;KERNEL;**208,258,284,432,469**;Jul 10, 1995;Build 8
  ;Per VHA Directive 2004-038, this routine should not be modified.
  W !,"Setting up programmer environment"
  S U="^",$ECODE="",$ETRAP="" ;Clear error and error trap

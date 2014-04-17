@@ -67,7 +67,7 @@ LOGERR(XUERR) ;build error array from fileman's error array
  F  S E=$O(XUERR("DIERR",E)) Q:'E  I $D(XUERR("DIERR",1,"TEXT",1)) S ECNT=ECNT+1,ERROR(ECNT)=$G(XUERR("DIERR",E,"TEXT",1)) ;capture text of errors
  Q
  ;
-BLDFDA(NEWCOR,COR,FDA)   ;build the FDA array to create the correlation
+BLDFDA(NEWCOR,COR,FDA) ;build the FDA array to create the correlation
  ;will only create FDA if existing data is different from updated data
  K FDA
  ;

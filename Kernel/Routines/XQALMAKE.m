@@ -1,6 +1,5 @@
 XQALMAKE ;ISC-SF.SEA/JLI- HIGH LEVEL SETUP ALERT ;4/9/07  14:03
- ;;8.0;KERNEL;**443,602**;Jul 10, 1995;Build 9
- ;Per VHA Directive 2004-038, this routine should not be modified
+ ;;8.0;KERNEL;**443**;Jul 10, 1995;Build 4
  ;;
 ENTRY ;
  W !!,"ALERT GENERATOR"

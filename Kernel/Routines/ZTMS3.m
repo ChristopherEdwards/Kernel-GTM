@@ -1,5 +1,5 @@
 %ZTMS3 ;SEA/RDS-TaskMan: Submanager, Part 5 (Run Task) ;08/27/08  14:19
- ;;8.0;KERNEL;**1,18,36,49,64,67,94,118,127,136,175,275,355,446**;Jul 10, 1995;Build 35
+ ;;8.0;KERNEL;**1,18,36,49,64,67,94,118,127,136,175,275,355,446**;Jul 10, 1995;Build 36
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;
 TASK ;SUBMGR--prepare and run task; cleanup after

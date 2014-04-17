@@ -1,5 +1,24 @@
-XPDV ;SFISC/RSD - Verify Build ;10/15/2008
- ;;8.0;KERNEL;**30,44,58,108,511,525,539,547**;Jul 10, 1995;Build 15
+XPDV ;SFISC/RSD - Verify Build ;12:55 PM  31 Dec 2011
+ ;;8.0;KERNEL;**30,44,58,108,511,525,539**;Jul 10, 1995;Build 21;;WorldVistA 30-June-08
+ ;
+ ;Modified from FOIA VISTA,
+ ;Copyright 2008 WorldVistA.  Licensed under the terms of the GNU
+ ;General Public License See attached copy of the License.
+ ;
+ ;This program is free software; you can redistribute it and/or modify
+ ;it under the terms of the GNU General Public License as published by
+ ;the Free Software Foundation; either version 2 of the License, or
+ ;(at your option) any later version.
+ ;
+ ;This program is distributed in the hope that it will be useful,
+ ;but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ;GNU General Public License for more details.
+ ;
+ ;You should have received a copy of the GNU General Public License along
+ ;with this program; if not, write to the Free Software Foundation, Inc.,
+ ;51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ ;
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;checks that everything is ready to do a build
  ;XPDA=build ien, loop thru all nodes in ^XPD(9.6,XPDA and verify data
@@ -121,10 +140,12 @@ RTN(X,MSG) ;verify tag^routine
  E  S T="",R=X
  I (R'?1A.E) S MSG=" Name violates the SAC!!" Q 0
  I $T(^@R)="" S MSG=" DOESN'T EXIST!!" Q 0
- ;2nd line must begin with "[label] ;;n[n.nn];A[APN];"
- S S=$T(+2^@R) D  I MSG]"" Q 0
- .I $L($P(S," ")) S L=$P(S," "),S=$P(S,L,2,99) I L'?1U.7UN S MSG=" 2nd line violates the SAC!!" Q
- .I S'?.1" ;;"1.2N.1".".2N1";"1.APN1";".E S MSG=" 2nd line violates the SAC!!"
+ ;2nd line must begin with "[label] ;;n[n.nn];"
+ ;Begin WorldVistA change ;NO HOME 1.0
+ ;S S=$T(+2^@R) D  I MSG]"" Q 0
+ ;.I $L($P(S," ")) S L=$P(S," "),S=$P(S,L,2,99) I L'?1U.7UN S MSG=" 2nd line violates the SAC!!" Q
+ ;.I S'?.1" ;;"1.2N.1".".2N1";".E S MSG=" 2nd line violates the SAC!!"
+ ;End WorldVistA change
  ;if no tag or tag^routine exists, then return 1
  Q:T="" 1 Q:$T(@T^@R)]"" 1
  S MSG=" Tag DOESN'T EXIST!!" Q 0

@@ -17,7 +17,7 @@ PRINTOPT ;
  W !!,"Select one of the following:",!!,?11,"1",?21,"ACTIVE users only",!,?11,"2",?21,"ACTIVE and DISUSERed users",!
  S DIR(0)="N^1:2",DIR("A")="Select a report option",DIR("B")="1" D ^DIR K DIR Q:Y'>0  S XUSER=+Y
  ; End XU*8*519 #1
- ; 
+ ;
  S DIR(0)="Y",DIR("B")="NO",DIR("A")="Sort by DIVISION" D ^DIR K DIR Q:Y="^"  S XUSDIV=+Y
  S PRNTFRMT=1
  I XUSDIV S DIR(0)="N^1:2",DIR("A")="Output type (1=Printed text or 2=^-delimited)" D ^DIR K DIR Q:Y'>0  S PRNTFRMT=Y
@@ -138,7 +138,7 @@ GETDATA(OPTION,XUSSORT,XUSDIV,XUSRESO,XUSER) ; get data for reports for provider
  . F XUSDIVN=0:0 S XUSDIVN=$O(XUSDIVNM(XUSDIVN)) Q:XUSDIVN'>0  D
  . . S X=PROVNAME_U_XUSIEN_U_NPI_U_TAXONOMY_U_TAXDESCR I XUSDIS="Yes" S X=X_U_XUSDIS  ;p 519 add piece #6 on X
  . . S @XUSGLOB@(XUSDIVNM(XUSDIVN),XUSSERVC,PROVNAME,XUSIEN,TAXDESCR)=X
- . . Q 
+ . . Q
  . Q
  I CNTCLEAN K CNTTOTAL,CNTNONE,CNTEXMPT,CNTDONE
  Q XUSGLOB

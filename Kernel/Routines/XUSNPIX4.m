@@ -1,5 +1,24 @@
-XUSNPIX4 ;OAK_BP/CMW/SLT - NPI EXTRACT REPORT ;7/7/08  17:39
- ;;8.0;KERNEL;**438,452,453,481,528,548**; Jul 10, 1995;Build 24
+XUSNPIX4 ;OAK_BP/CMW/SLT - NPI EXTRACT REPORT ;2:11 PM  12 Jan 2012
+ ;;8.0;KERNEL;**438,452,453,481,528,548**; Jul 10, 1995;Build 21;WorldVistA 30-June-08
+ ;
+ ;Modified from FOIA VISTA,
+ ;Copyright 2008 WorldVistA.  Licensed under the terms of the GNU
+ ;General Public License See attached copy of the License.
+ ;
+ ;This program is free software; you can redistribute it and/or modify
+ ;it under the terms of the GNU General Public License as published by
+ ;the Free Software Foundation; either version 2 of the License, or
+ ;(at your option) any later version.
+ ;
+ ;This program is distributed in the hope that it will be useful,
+ ;but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ;GNU General Public License for more details.
+ ;
+ ;You should have received a copy of the GNU General Public License along
+ ;with this program; if not, write to the Free Software Foundation, Inc.,
+ ;51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ ;
  ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  ; Direct access to ^IBE(350.9, fields .02, 1.05, 19;.02, 19;1.01, 19;1.02, 19;1.03, 19;,1.04, 19;1.05 authorized by
@@ -22,7 +41,7 @@ XUSNPIX4 ;OAK_BP/CMW/SLT - NPI EXTRACT REPORT ;7/7/08  17:39
  ;      Piece 4 => Last Date Compiled
  ;      Piece 5 => $H last run start time
  ;      Piece 6 => $H last run completion time
- ;      
+ ;
  ;      Entry Point - ENT called from XUSNPIX1
  ;
  Q
@@ -50,13 +69,16 @@ TYPE1(DTTM3,SITE,XUSPROD,XUSHDR,XUSP2P) ;
  . S XUSNM=$P(IBA0,U)
  . ; Break Name into components
  . I XUSNM'="" D
- . . S XLFNC=XUSNM D FORMAT^XLFNAME7(.XLFNC,,,,0)
+ . . ;Begin WorldVistA Change; NO HOME 1.0
+ . . ;S XLFNC=XUSNM D FORMAT^XLFNAME7(.XLFNC,,,,0)
+ . . S XLFNC=XUSNM S XLFNC=$$FORMAT^XLFNAME7(.XLFNC,,,,0)
+ . . ;End WorldVistA change
  . . S XUSNV(2)=XLFNC("GIVEN"),XUSNV(3)=XLFNC("MIDDLE"),XUSNV(4)=XLFNC("FAMILY")
  . . I XLFNC("SUFFIX")'="" S XUSNV(4)=XUSNV(4)_" "_XLFNC("SUFFIX")
  . . K XLFNC
  . S XUSDATA=XUSDATA_U_XUSNV(2)_U_XUSNV(3)_U_XUSNV(4)
  . S XUSNV(5)=1 ;TYPE
- . ;                                    
+ . ;
  . ; DOB (place holder)
  . S XUSNV(6)=""
  . S XUSDATA=XUSDATA_U_XUSNV(5)_U_XUSNV(6)
@@ -198,7 +220,7 @@ TYPE2(DTTM3,SITE,XUSPROD,XUSHDR,XUSP2P) ;Facility/Group
  . ;
  . F XUSI=1:1:24 S XUSNV(XUSI)=""
  . S IBA0=$G(^IBA(355.93,NVIEN,0))
- . ;Get Organization name  
+ . ;Get Organization name
  . S XUSNV(2)=$P(IBA0,U)
  . ;Type
  . S XUSNV(3)=2
@@ -219,7 +241,7 @@ TYPE2(DTTM3,SITE,XUSPROD,XUSHDR,XUSP2P) ;Facility/Group
  . ;
  . ;Office Phone number (place holder)
  . S XUSNV(15)=""
- . ; 
+ . ;
  . ; get Taxonomy and Specialty
  . N NVTX,NVSPC,NVTAX
  . S NVTX=0

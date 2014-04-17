@@ -2,8 +2,8 @@ DA RETURN CODES
 ZWR
 ^%ZIS(3.22,0)="DA RETURN CODES^3.22^15^15"
 ^%ZIS(3.22,1,0)="[=7c^C-QVT103"
-^%ZIS(3.22,2,0)="[?6c^C-VT102"
-^%ZIS(3.22,2,1,0)="^^2^2^2930304^^"
+^%ZIS(3.22,2,0)="[?6c^C-VT132"
+^%ZIS(3.22,2,1,0)="^3.223^2^2^3110620^^^"
 ^%ZIS(3.22,2,1,1,0)="This is a DEC VT320 in VT102 mode."
 ^%ZIS(3.22,2,1,2,0)="And White Knight in VT102 mode."
 ^%ZIS(3.22,3,0)="[?1;0c^C-WYSE 75"

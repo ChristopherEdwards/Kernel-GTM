@@ -1,5 +1,22 @@
 XQSUITE ;Luke/Sea - Window Suite driver ;2/14/95  10:32
- ;;8.0;KERNEL;;Jul 10, 1995
+ ;;8.0;KERNEL;;Jul 10, 1995;Build 21
+ ;Modified from FOIA VISTA,
+ ;Copyright 2008 WorldVistA.  Licensed under the terms of the GNU
+ ;General Public License See attached copy of the License.
+ ;
+ ;This program is free software; you can redistribute it and/or modify
+ ;it under the terms of the GNU General Public License as published by
+ ;the Free Software Foundation; either version 2 of the License, or
+ ;(at your option) any later version.
+ ;
+ ;This program is distributed in the hope that it will be useful,
+ ;but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ;GNU General Public License for more details.
+ ;
+ ;You should have received a copy of the GNU General Public License along
+ ;with this program; if not, write to the Free Software Foundation, Inc.,
+ ;51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  ;
  ;Jump-start XQSUITE by asking which suite to run
  S DIC=19,DIC(0)="AEQM" D ^DIC Q:Y<0  S (XQDIC,XQY)=+Y K DIC,XQUR,Y,^VA(200,DUZ,202.1)
@@ -32,7 +49,7 @@ EN ;Entry point for ^XQ1
  .Q
  K XQI,XQJ,XQJYM,XQK
  ;
-ICONS ;Build the generic (icon) windows for each option    
+ICONS ;Build the generic (icon) windows for each option
  S XQK=0,XQGB1="XQB1",XQGB2="XQB2",XQGL1="XQL1",XQGL2="XQL2",XQII="XQSI"
  S XQP1=30,XQP2=",334",XQIP1=30,XQIP2=20
  S XQPTH=$G(^XTV(8989.3,101)),XQNB=0,XQNI=0,XQLONG=0
@@ -101,14 +118,14 @@ KILL K X,XQB1,XQB2,XQGB1,XQGB2,XQGL1,XQGL2,XQI,XQICP,XQII,XQIP1,XQIP2,XQJ,XQJY,X
  ;
  D K^XG(XQWIN)
  ;
-OUT ;Finish it all up here     
+OUT ;Finish it all up here
  K ^XUTL(XQWIN,$J,XQY)
  K ^TMP($J,XQWIN),^TMP($J,"XQP")
  ;D CLEAN^XG
  K %,%Y,XQWIN
  Q
  ;
-SEL ;One of the icons was double-clicked 
+SEL ;One of the icons was double-clicked
  ;N XQY,XQWIN
  S XQI=@XGEVENT@("WINDOW")
  S XQJ=@XGEVENT@("ELEMENT")
@@ -133,9 +150,9 @@ SEL ;One of the icons was double-clicked
  .S XQWIN=$$NEXTNM^XGCLOAD("XQSUI")
  .D GET^XGCLOAD(XQSUI,$NA(^TMP($J,XQWIN)))
  .D M^XG(XQWIN,$NA(^TMP($J,XQWIN)))
- .D SD^XG($PD,"FOCUS",XQWIN)
+ .D SD^XG($P,"FOCUS",XQWIN)
  .;D ESTA^XG() ;Send it off to window land
- .; 
+ .;
  .;D K^XG(XQWIN) ;Return here after the ESTOP
  .Q
  Q

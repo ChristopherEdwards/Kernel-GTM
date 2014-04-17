@@ -103,7 +103,7 @@ REWMT(IO,IOPAR) ;Rewind Magtape
 REWSDP(IO,IOPAR) ;Rewind SDP
  G REW1
 REWHFS(IO,IOPAR) ;Rewind Host File.
-REW1 S X="REWERR^%ZIS4",@^%ZOSF("TRAP")
+REW1    S X="REWERR^%ZIS4",@^%ZOSF("TRAP")
  U IO:(REWIND)
  Q 1
 REWERR ;Error encountered

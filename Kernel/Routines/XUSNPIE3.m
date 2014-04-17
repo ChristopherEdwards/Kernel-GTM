@@ -1,10 +1,10 @@
-XUSNPIE3 ;FO-OAKLAND/JLI - NATIONAL PROVIDER IDENTIFIER DATA CAPTURE ;4/8/08  18:18
+XUSNPIE3        ;FO-OAKLAND/JLI - NATIONAL PROVIDER IDENTIFIER DATA CAPTURE ;4/8/08  18:18
  ;;8.0;KERNEL;**480**; July 10, 1995;Build 38
  ;;Per VHA Directive 2004-038, this routine should not be modified
  ;
  Q
  ;
-EDITNPI(IEN) ; main entry of NPI value
+EDITNPI(IEN)    ; main entry of NPI value
  ; IEN is the internal entry number in file 200 for the provider
  ;
  N DATEVAL,DESCRIP,DONE,NPIVAL1,NPIVAL2,PROVNAME,I,XX,X,Y,CURRNPI,XUSFLAG
@@ -125,7 +125,7 @@ EDITNPI(IEN) ; main entry of NPI value
  D EDRLNPI^XUSNPIED(IEN)
  Q
  ;
-CHKNPIU(XUSNPI,XUSIEN,XUSFLAG,XUSRSLT) ; Return error or warning if current or new NPI is in use
+CHKNPIU(XUSNPI,XUSIEN,XUSFLAG,XUSRSLT)  ; Return error or warning if current or new NPI is in use
  N XUSQI,NPIUSED,I
  S XUSQI=$$QI^XUSNPI(XUSNPI)
  K XUSRSLT
@@ -139,7 +139,7 @@ CHKNPIU(XUSNPI,XUSIEN,XUSFLAG,XUSRSLT) ; Return error or warning if current or n
  . Q
  Q NPIUSED
  ;
-WARNING(XUSTYPE,PROVNAME,XUSRSLT,XUSNNPI) ; If old NPI was in use by a non-VA provider, issue warning after REPLACE/DELETE
+WARNING(XUSTYPE,PROVNAME,XUSRSLT,XUSNNPI)       ; If old NPI was in use by a non-VA provider, issue warning after REPLACE/DELETE
  ; XUSTYPE = Flag indicating whether NPI was Deleted or Changed
  ; PROVNAME = Name of provider whose NPI was changed/deleted
  ; XUSRSLT = text of warning message
@@ -160,7 +160,7 @@ WARNING(XUSTYPE,PROVNAME,XUSRSLT,XUSNNPI) ; If old NPI was in use by a non-VA pr
  D SNDMSG(DUZ,XUSTYPE,.XUSRSLT)
  Q
  ;
-SNDMSG(XMDUZ,XUSTYPE,XUSRSLT) ;Sends msg when NPI is changed/deleted.
+SNDMSG(XMDUZ,XUSTYPE,XUSRSLT)   ;Sends msg when NPI is changed/deleted.
  ; XUSTYPE = flag indicating NPI was Deleted or Changed
  ; XUSRSLT = array containing the message text and the recipients
  N XMTEXT,XMSUB,XMMG,I,X

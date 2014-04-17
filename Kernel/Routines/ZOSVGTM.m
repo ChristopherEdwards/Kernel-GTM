@@ -108,7 +108,7 @@ GETENV ;Get environment Return Y='UCI^VOL^NODE^BOX LOOKUP'
 VERSION(X) ;return OS version, X=1 - return OS
  Q $S($G(X):$P($ZV," V"),1:+$P($ZV," V",2))
  ;
-OS() ;
+OS()    ;
  Q "VMS"
  ;
 RTNDIR() ;primary routine source directory

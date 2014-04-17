@@ -154,7 +154,7 @@ HFSREW(IO,IOPAR) ;Rewind Host File.
 HFSRWERR ;Error encountered
  Q 0
 LOGRSRC(OPT,TYPE,STATUS) ;record resource usage in ^XTMP("KMPR"
- Q:'$G(^%ZTSCH("LOGRSRC"))  ; quit if RUM not turned on.
+ Q:'$G(^%ZTSCH("LOGRSRC")) ; quit if RUM not turned on.
  ; call to RUM routine.
  D RU^%ZOSVKR($G(OPT),$G(TYPE),$G(STATUS))
  Q

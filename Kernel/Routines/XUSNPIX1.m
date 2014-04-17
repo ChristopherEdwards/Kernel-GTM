@@ -1,5 +1,24 @@
-XUSNPIX1 ;OAK_BP/CMW - NPI EXTRACT REPORT ;7/9/08  18:18
- ;;8.0;KERNEL;**438,452,453,481,528,548**; Jul 10, 1995;Build 24
+XUSNPIX1 ;OAK_BP/CMW - NPI EXTRACT REPORT ;2:07 PM  12 Jan 2012
+ ;;8.0;KERNEL;**438,452,453,481,528,548**; Jul 10, 1995;Build 21;WorldVistA 30-June-08
+ ;
+ ;Modified from FOIA VISTA,
+ ;Copyright 2008 WorldVistA.  Licensed under the terms of the GNU
+ ;General Public License See attached copy of the License.
+ ;
+ ;This program is free software; you can redistribute it and/or modify
+ ;it under the terms of the GNU General Public License as published by
+ ;the Free Software Foundation; either version 2 of the License, or
+ ;(at your option) any later version.
+ ;
+ ;This program is distributed in the hope that it will be useful,
+ ;but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ;GNU General Public License for more details.
+ ;
+ ;You should have received a copy of the GNU General Public License along
+ ;with this program; if not, write to the Free Software Foundation, Inc.,
+ ;51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ ;
  ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  ; Direct access to ^IBE(350.9, fields .02, 1.05, 19;.02, 19;1.01, 19;1.02, 19;1.03, 19;,1.04, 19;1.05 authorized by
@@ -24,7 +43,7 @@ XUSNPIX1 ;OAK_BP/CMW - NPI EXTRACT REPORT ;7/9/08  18:18
  ;      Piece 6 => $H last run completion time
  ;
  ;   ^XTMP("XUSNPIX1",1) = DATA
- ;               
+ ;
  ;          XUSNPI => Unique NPI of entry
  ;          LDT => Last Date Run, VA Fileman Format
  ;
@@ -101,30 +120,30 @@ INIT(XUSRTN) ; check/init variables
  ;
 MAILTO(XMY) ;sets the MailMan recipients based on need (XU*8.0*548)
  ;
- ;When you don't want data to go out to Austin's FSC but you need it to 
+ ;When you don't want data to go out to Austin's FSC but you need it to
  ;stay within the VistA's MailMan for internal testing, comment out setting
- ;the XMY("XXX@Q-NPS.domain.ext) array and add your own MailMan address that
+ ;the XMY("XXX@Q-NPS.VA.GOV) array and add your own MailMan address that
  ;is present in the VistA account your are on.  An example of an email address
  ;for testing purposes is below.
  ;
- ;S XMY("TJERNAGEL.STEVE@MNTVBB.FO-ALBANY.DOMAIN.EXT")="" ; for testing only
- ;S XMY("TJERNAGEL.STEVE@CHEY65.FO-BAYPINES.DOMAIN.EXT")="" ;for CHEY65 testing only
- ;S XMY("NULL.RODGER_B@MNTVBB.FO-ALBANY.DOMAIN.EXT")="" ; for testing only
- ;S XMY("NULL.RODGER@CHEY65.FO-BAYPINES.DOMAIN.EXT")="" ; for CHEY65 testing only
- ;S XMY("WHITE.DARLENE@MNTVBB.FO-ALBANY.DOMAIN.EXT")="" ; for testing only
- ;S XMY("WHITE.DARLENE@CHEY65.FO-BAYPINES.DOMAIN.EXT")="" ; for CHEY65 testing only
+ ;S XMY("TJERNAGEL.STEVE@MNTVBB.FO-ALBANY.MED.VA.GOV")="" ; for testing only
+ ;S XMY("TJERNAGEL.STEVE@CHEY65.FO-BAYPINES.MED.VA.GOV")="" ;for CHEY65 testing only
+ ;S XMY("NULL.RODGER_B@MNTVBB.FO-ALBANY.MED.VA.GOV")="" ; for testing only
+ ;S XMY("NULL.RODGER@CHEY65.FO-BAYPINES.MED.VA.GOV")="" ; for CHEY65 testing only
+ ;S XMY("WHITE.DARLENE@MNTVBB.FO-ALBANY.MED.VA.GOV")="" ; for testing only
+ ;S XMY("WHITE.DARLENE@CHEY65.FO-BAYPINES.MED.VA.GOV")="" ; for CHEY65 testing only
  ;
  ;When you want data to go out to Austin's FSC group, uncomment this line.
- S XMY("XXX@Q-NPS.domain.ext")=""                         ;uncomment to run for live ***
+ S XMY("XXX@Q-NPS.VA.GOV")=""                         ;uncomment to run for live ***
  Q
  ;
 INST(XUSRTN,XUSVER,INSMAIL) ;Pull station and Institution info
  N INST,SINFO,DIC4
  ; Pull site info
  S SINFO=$$SITE^VASITE
- ; Station Number 
+ ; Station Number
  S SITE=$P(SINFO,U,3)
- ; Institution    
+ ; Institution
  S INST=$P(SINFO,U)
  ;
  ; Get institution mailing address
@@ -171,7 +190,10 @@ PROC1(XUSRTN,XUSPROD,XUSVER,DTTM,INSMAIL) ;Process all New Person records
  . ;
  . ; Break name into components
  . I XUSNAME'="" D
- . . S XLFNC=XUSNAME D FORMAT^XLFNAME7(.XLFNC,,,,0)
+ . . ;Begin WorldVistA Change ;NO HOME 1.0
+ . . ;S XLFNC=XUSNAME D FORMAT^XLFNAME7(.XLFNC,,,,0)
+ . . S XLFNC=XUSNAME S XLFNC=$$FORMAT^XLFNAME7(.XLFNC,,,,0)
+ . . ;End WorldVistA change
  . . S XUSNP(2)=XLFNC("GIVEN"),XUSNP(3)=XLFNC("MIDDLE"),XUSNP(4)=XLFNC("FAMILY")
  . . I XLFNC("SUFFIX")'="" S XUSNP(4)=XUSNP(4)_" "_XLFNC("SUFFIX")
  . . K XLFNC

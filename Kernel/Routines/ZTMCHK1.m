@@ -1,5 +1,5 @@
 ZTMCHK1 ;SEA/RDS-Taskman: Option, ZTMCHECK, Part 2 ;5/31/07  12:13
- ;;8.0;KERNEL;**127,446**;Jul 10, 1995;Build 35
+ ;;8.0;KERNEL;**127,446**;Jul 10, 1995;Build 36
  ;
 LINKS ;Check Required Volume Sets' Links
  W !!,"Checking the links to the required volume sets..."

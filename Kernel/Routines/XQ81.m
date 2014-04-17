@@ -226,7 +226,7 @@ MERGEX ;Merge ^DIC(19,"AXQ") into ^XUTL("XQO")
  I 'XQFLAG,$D(XQFG) W " done."
  Q
  ;
-STATUS()  ;Are the menus being rebuilt even as we speak?
+STATUS() ;Are the menus being rebuilt even as we speak?
  N %,XQTHEN
  S %=$G(^DIC(19,"AXQ","P0")) I %="" Q 1  ;It finished.  Never mind.
  L +^DIC(19,"AXQ","P0"):0 ;If job is still running we can't lock it

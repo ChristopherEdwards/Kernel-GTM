@@ -1,5 +1,5 @@
 XQ1 ; SEA/MJM - DRIVER FOR MENUMAN (PART 2) ;08/28/08  13:20
- ;;8.0;KERNEL;**1,15,59,67,46,151,170,242,446**;Jul 10, 1995;Build 35
+ ;;8.0;KERNEL;**1,15,59,67,46,151,170,242,446**;Jul 10, 1995;Build 36
  ;Per VHA Directive 2004-038, this routine should not be modified.
  S DIC=19,DIC(0)="AEQM" D ^DIC Q:Y<0  S (XQDIC,XQY)=+Y K DIC,XQUR,Y,^VA(200,DUZ,202.1)
  D INIT^XQ12

@@ -42,7 +42,7 @@ ASKAGN W !,"HOST FILE NAME: "_IO_"//" D SBR^%ZIS1
  I %X?1."?".E W !,"ENTER HOST FILE NAME" G ASKAGN
  S:$D(DTOUT)!$D(DUOUT) POP=1
  Q
-CHKNM(H)        ;Check the HFS name
+CHKNM(H) ;Check the HFS name
  Q:$D(IO("Q")) H
  N N,P,F,%OS S N=H,%OS=$$OS^%ZOSV
  ;Find any path may have

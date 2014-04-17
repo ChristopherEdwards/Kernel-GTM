@@ -1,5 +1,5 @@
-%ZISH ;ISF/AC,RWF - GT.M for VMS/Unix Host file Control ;12/07/09  15:53
- ;;8.0;KERNEL;**275,306,385,524**;Jul 10, 1995;Build 12
+%ZISH ;ISF/AC,RWF - GT.M for VMS/Unix Host file Control ;11:32 AM  28 Feb 2012
+ ;;8.0;KERNEL;**275,306,385,524,LOCAL**;Jul 10, 1995;Build 12
  ; for GT.M for Unix/VMS, version 4.3
  ;
 OPENERR ;
@@ -93,7 +93,10 @@ PWD() ;ef,SR. Print working directory
  ;
 DEFDIR(DF) ;ef. Default Dir and frmt
  S DF=$G(DF) Q:DF="." "" ;Special way to get current dir.
- S:DF="" DF=$P($G(^XTV(8989.3,1,"DEV")),"^",1)
+ ;Begin WorldVistA change ;SO 02/28/2012
+ ;was;S:DF="" DF=$P($G(^XTV(8989.3,1,"DEV")),"^",1)
+ S:DF="" DF=$P($G(^XTV(8989.3,1,"DEV")),"^",1),DF=$P(DF,"^",$S($$PRI^%ZOSV<2:1,1:2))
+ ;End WorldVistA change
  ;Old code
  ;Check syntax, VMS needs : or [ ]
  I ^%ZOSF("OS")["VMS" D  Q DF ;***EXIT FOR VMS/GTM
