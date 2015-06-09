@@ -1,4 +1,4 @@
-%ZISH ;ISF/AC,RWF - GT.M for UNIX Host file Control ;01/04/2005  08:13
+%ZISH ;ISF/AC,RWF - GT.M for UNIX Host file Control ;2015-06-09  7:39 AM
  ;;8.0;KERNEL;**275,306**;Jul 10, 1995;
  ; for GT.M for Unix/VMS, version 4.3
  ;
@@ -15,7 +15,7 @@ OPEN(X1,X2,X3,X4,X5,X6) ;SR. Open file
  S $ETRAP="D OPNERR^%ZISH"
  S U="^",X2=$$DEFDIR($G(X2)),X4=$$UP^XLFSTR(X4)
  S Y=$S(X4["A":"append",X4["R":"readonly",X4["W":"newversion",1:"readonly")
- S Y=Y_$S(X4["B":":fixed:nowrap:recordsize=512",$G(X5)&(X4["W"):":WIDTH="_+X5,1:"")
+ S Y=Y_$S(X4["B":":nowrap:stream:width=32767",$G(X5)&(X4["W"):":WIDTH="_+X5,1:"")
  S:$E(Y)=":" Y=$E(Y,2,999) S %IO=X2_X3,%I2="%IO:"_$S($L(Y):"("_Y_")",1:"")_":3"
  O @%I2 S %T=$T
  I '%T S POP=1 Q
