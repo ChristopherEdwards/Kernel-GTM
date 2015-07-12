@@ -27,7 +27,9 @@ RTNDIR() ; primary routine source directory
  Q:$F(DIR," ")'>$F(DIR,"(") $P(DIR," ",1)_"/"
  ; Otherwise construct is of the form xxxx(yyyy) or xxxx(yyyy xxxx); return yyyy/
  S DIR=$P(DIR,"(",2)
- Q $S($F(DIR,")")>$F(DIR," "):$P(DIR," ",1),1:$P(DIR,")",1))
+ S DIR=$S($F(DIR,")")>$F(DIR," "):$P(DIR," ",1),1:$P(DIR,")",1))
+ I $E(DIR,$L(DIR))'="/" S DIR=DIR_"/"
+ QUIT DIR
  ;
 TEMP() ; Return path to temp directory
  ;N %TEMP S %TEMP=$P($$RTNDIR," "),%TEMP=$P(%TEMP,"/",1,$L(%TEMP,"/")-2)_"/t/"
