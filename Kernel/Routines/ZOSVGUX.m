@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ; 4/10/14 9:12P
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2015-12-21  1:45 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -18,18 +18,41 @@ AVJ() ; # available jobs, Limit is in the OS.
  Q J-$$ACTJ ;Use signon Max
  ;
 RTNDIR() ; primary routine source directory
- N DIR
- ; Remove any leading element of $ZRO that is a shared library (*.so) - no routines in a shared library
- S DIR=$ZRO F  Q:'$F(DIR,".so")!($F(DIR," ")<$F(DIR,".so "))  S DIR=$P(DIR," ",2,$L(DIR," "))
- S:'$L(DIR) $EC=",U255," ; DIR is a null string if $ZRO consists only of shared libraries, so no source directory
- ; If DIR starts with a single directory, or is just a directory (neither space nor paren found), 
- ; i.e., of the form xxxx ... return the directory xxx/
- Q:$F(DIR," ")'>$F(DIR,"(") $P(DIR," ",1)_"/"
- ; Otherwise construct is of the form xxxx(yyyy) or xxxx(yyyy xxxx); return yyyy/
- S DIR=$P(DIR,"(",2)
- S DIR=$S($F(DIR,")")>$F(DIR," "):$P(DIR," ",1),1:$P(DIR,")",1))
- I $E(DIR,$L(DIR))'="/" S DIR=DIR_"/"
- QUIT DIR
+ N DIRS
+ D PARSEZRO(.DIRS,$ZRO)
+ N I F I=1:1 Q:'$D(DIRS(I))  I DIRS(I)[".so" K DIRS(I)
+ I '$D(DIRS) S $EC=",U255,"
+ QUIT $$ZRO1ST(.DIRS)
+ ;
+PARSEZRO(DIRS,ZRO) ; Parse $zroutines properly into an array
+ ; Eat spaces
+ F  Q:($E(ZRO)'=" ")  S ZRO=$E(ZRO,2,999)
+ ;
+ N PIECE
+ N I
+ F I=1:1:$L(ZRO," ") S PIECE(I)=$P(ZRO," ",I)
+ N CNT S CNT=1
+ F I=0:0 S I=$O(PIECE(I)) Q:'I  D
+ . S DIRS(CNT)=$G(DIRS(CNT))_PIECE(I)
+ . I DIRS(CNT)["("&(DIRS(CNT)[")") S CNT=CNT+1 QUIT
+ . I DIRS(CNT)'["("&(DIRS(CNT)'[")") S CNT=CNT+1 QUIT
+ . S DIRS(CNT)=DIRS(CNT)_" " ; prep for next piece
+ QUIT
+ ;
+ZRO1ST(DIRS) ; $$ Get first routine directory
+ N OUT ; $$ return
+ N %1 S %1=DIRS(1) ; 1st directory
+ ; Parse with (...)
+ I %1["(" DO
+ . S OUT=$P(%1,"(",2)
+ . I OUT[" " S OUT=$P(OUT," ")
+ . E  S OUT=$P(OUT,")")
+ ; no parens
+ E  S OUT=%1
+ ;
+ ; Add trailing slash
+ I $E(OUT,$L(OUT))'="/" S OUT=OUT_"/"
+ QUIT OUT
  ;
 TEMP() ; Return path to temp directory
  ;N %TEMP S %TEMP=$P($$RTNDIR," "),%TEMP=$P(%TEMP,"/",1,$L(%TEMP,"/")-2)_"/t/"
