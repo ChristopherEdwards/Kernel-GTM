@@ -7,8 +7,8 @@ SAVE(RN) ;Save a routine
  N %,%F,%I,%N,SP,$ETRAP
  S $ETRAP="S $ECODE="""" Q"
  S %I=$I,SP=" ",%F=$$RTNDIR^%ZOSV()_$TR(RN,"%","_")_".m"
- O %F:(NEWVERSION:NOREADONLY:NOWRAP:STREAM:WIDTH=32767) U %F
- F  S XCN=$O(@(DIE_XCN_")")) Q:XCN'>0  S %=@(DIE_XCN_",0)") Q:$E(%,1)="$"  I $E(%)'=";" W $P(%,SP),$C(9),$P(%,SP,2,$L(%,SP)),!
+ O %F:(NEWVERSION:NOREADONLY:NOWRAP:STREAM) U %F
+ F  S XCN=$O(@(DIE_XCN_")")) Q:XCN'>0  S %=@(DIE_XCN_",0)") Q:$E(%,1)="$"  I $E(%)'=";" W %,!
  C %F ;S %N=$$NULL
  ZLINK RN
  ;C %N
