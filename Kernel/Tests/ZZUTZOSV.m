@@ -1,88 +1,87 @@
-ZZUTZOSV ;KRM/CJE - ZOSV2 unit tests ;11/18/2013 ; 3/14/14 3:53P
+ZZUTZOSV ;KRM/CJE - ZOSV2 unit tests ;2016-01-11  5:52 PM; 3/14/14 3:53P
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
- ; insures that XTMUNIT will be run only where it is present
- I $T(EN^XTMUNIT)'="" D EN^XTMUNIT("ZZUTZOSV")
+ ; insures that %ut will be run only where it is present
+ I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",2)
  Q
  ;
-STARTUP ; optional entry point
- ; if present executed before any other entry point any variables
- ; or other work that needs to be done for any or all tests in the
- ; routine.  This is run only once at the beginning.
+ZRO1 ; @TEST $ZROUTINES Parsing Single Object Multiple dirs
+ N ZR S ZR="o(p r) /var/abc(/var/abc/r/) /abc/def $gtm_dist/libgtmutl.so vista.so"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"p/")
+ QUIT
+ ;
+ZRO2 ; @TEST $ZROUTINES Parsing 2 Single Object Single dir
+ N ZR S ZR="/var/abc(/var/abc/r/) o(p r) /abc/def $gtm_dist/libgtmutl.so vista.so"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"/var/abc/r/")
+ QUIT
+ ;
+ZRO3 ; @TEST $ZROUTINES Parsing Shared Object/Code dir
+ N ZR S ZR="/abc/def /var/abc(/var/abc/r/) o(p r) $gtm_dist/libgtmutl.so vista.so"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"/abc/def/")
+ QUIT
+ ;
+ZRO4 ; @TEST $ZROUTINES Parsing Single Directory by itself
+ N ZR S ZR="/home/osehra/r"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"/home/osehra/r/")
+ QUIT
+ ;
+ZRO5 ; @TEST $ZROUTINES Parsing Leading Space
+ N ZR S ZR=" o(p r) /var/abc(/var/abc/r/) /abc/def $gtm_dist/libgtmutl.so vista.so"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"p/")
+ QUIT
+ ;
+ ;
+ZRO7 ; @TEST $ZROUTINES Shared Object Only
+ N ZR S ZR="/home/osehra/lib/gtm/libgtmutil.so"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"")
  Q
  ;
-SHUTDOWN ; optional entry point
- ; if present executed after all other processing is complete to remove
- ; any variables, or undo work done in STARTUP.
+ZRO8 ; @TEST $ZROUTINES No shared object
+ N ZR S ZR="/home/osehra/r/V6.0-002_x86_64(/home/osehra/r) /home/osehra/lib/gtm"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"/home/osehra/r/")
  Q
  ;
-SETUP ; optional entry point
- ; if present it will be executed before each test entry to set up
- ; variables, etc.
+ZRO9 ; @TEST $ZROUTINES Shared Object First
+ N ZR S ZR="/home/osehra/lib/gtm/libgtmutil.so /home/osehra/r/V6.0-002_x86_64(/home/osehra/r)"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"/home/osehra/r/")
  Q
  ;
-TEARDOWN ; optional entry point
- ; if present it will be exceuted after each test entry to clean up
- ; variables, etc.
+ZRO10 ; @TEST $ZROUTINES Shared Object First but multiple rtn dirs
+ N ZR S ZR="/home/osehra/lib/gtm/libgtmutil.so /home/osehra/p/V6.0-002_x86_64(/home/osehra/p) /home/osehra/s/V6.0-002_x86_64(/home/osehra/s) /home/osehra/r/V6.0-002_x86_64(/home/osehra/r)"
+ N DIRS D PARSEZRO^%ZOSV(.DIRS,ZR)
+ N FIRSTDIR S FIRSTDIR=$$ZRO1ST^%ZOSV(.DIRS)
+ D CHKEQ^%ut(FIRSTDIR,"/home/osehra/p/")
  Q
  ;
-SIMPL; Simple $ZROUTINES (single routine dir) - NO shared object
- N OLDZRO,RTNDIR
- S OLDZRO=$ZRO
- S $ZRO="/home/osehra/r"
- S RTNDIR=$$RTNDIR^%ZOSV
- S $ZRO=OLDZRO
- D CHKEQ^XTMUNIT("/home/osehra/r/",RTNDIR,"$$RTNDIR^%ZOSV didn't return the correct value")
- Q
+ZRO99 ; @TEST $$RTNDIR^%ZOSV Shouldn't be Empty
+ N RTNDIR S RTNDIR=$$RTNDIR^%ZOSV
+ D CHKTF^%ut(RTNDIR]"")
+ QUIT
  ;
-SHRONLY; $ZROUTINES - ONLY shared object
- N OLDZRO,RTNDIR
- S OLDZRO=$ZRO
- S $ZRO="/home/osehra/lib/gtm/libgtmutil.so"
- ; This only works because %ZOSV is already loaded into memory or it would fail
- S RTNDIR=$$RTNDIR^%ZOSV
- S $ZRO=OLDZRO
- D CHKEQ^XTMUNIT("",RTNDIR,"$$RTNDIR^%ZOSV didn't return the correct value")
- Q
- ;
-NOSHR ; $ZROUTINES - No shared object
- N OLDZRO,RTNDIR
- S OLDZRO=$ZRO
- S $ZRO="/home/osehra/r/V6.0-002_x86_64(/home/osehra/r) /home/osehra/lib/gtm"
- S RTNDIR=$$RTNDIR^%ZOSV
- S $ZRO=OLDZRO
- D CHKEQ^XTMUNIT("/home/osehra/r/",RTNDIR,"$$RTNDIR^%ZOSV didn't return the correct value")
- Q
- ;
-SHROBJ; $ZROUTINES - WITH shared object
- N OLDZRO,RTNDIR
- S OLDZRO=$ZRO
- S $ZRO="/home/osehra/lib/gtm/libgtmutil.so /home/osehra/r/V6.0-002_x86_64(/home/osehra/r)"
- S RTNDIR=$$RTNDIR^%ZOSV
- S $ZRO=OLDZRO
- D CHKEQ^XTMUNIT("/home/osehra/r/",RTNDIR,"$$RTNDIR^%ZOSV didn't return the correct value")
- Q
- ;
-PSDIR ; $ZROUTINES (multiple directories) - WITH shared object
- N OLDZRO,RTNDIR
- S OLDZRO=$ZRO
- S $ZRO="/home/osehra/lib/gtm/libgtmutil.so /home/osehra/p/V6.0-002_x86_64(/home/osehra/p) /home/osehra/s/V6.0-002_x86_64(/home/osehra/s) /home/osehra/r/V6.0-002_x86_64(/home/osehra/r)"
- S RTNDIR=$$RTNDIR^%ZOSV
- S $ZRO=OLDZRO
- D CHKEQ^XTMUNIT("/home/osehra/p/",RTNDIR,"$$RTNDIR^%ZOSV didn't return the correct value")
- Q
- ;
-ACTJ ; Default path through ACTJ^ZOSV
+ACTJ ; @TEST Default path through ACTJ^ZOSV
  N JOBS,ACTJ
- ; Read the global to get what the system thinks is the active jobs
- S JOBS=$G(^XUTL("XUSYS","CNT"))
- I 'JOBS D FAIL^XTMUNIT("System has no jobs on file. Can't test default path") Q
  ; Run the algorithm
  S ACTJ=$$ACTJ^%ZOSV
- D CHKEQ^XTMUNIT(JOBS,ACTJ,"$$ACTJ^%ZOSV didn't return the correct value")
+ D CHKTF^%ut(ACTJ>0,"$$ACTJ^%ZOSV didn't return the correct value")
  Q
  ;
-ACTJ0 ; Force ^XUTL("XUSYS","CNT") to 0 to force algorithm to run
+ACTJ0 ; @TEST Force ^XUTL("XUSYS","CNT") to 0 to force algorithm to run
  N JOBS,ACTJ
  ; Read the global to get what the system thinks is the active jobs
  S JOBS=$G(^XUTL("XUSYS","CNT"))
@@ -90,10 +89,10 @@ ACTJ0 ; Force ^XUTL("XUSYS","CNT") to 0 to force algorithm to run
  S ^XUTL("XUSYS","CNT")=0
  ; Run the algorithm
  S ACTJ=$$ACTJ^%ZOSV
- D CHKEQ^XTMUNIT(JOBS,ACTJ,"$$ACTJ^%ZOSV is out of sync with jobs on file")
+ D CHKEQ^%ut(JOBS,ACTJ,"$$ACTJ^%ZOSV is out of sync with jobs on file")
  Q
  ;
-DOLRO ; Ensure symbol table is saved correctly
+DOLRO ; @TEST Ensure symbol table is saved correctly
  N TEST,X
  ; Will check for this variable and value in the open root
  S TEST="TEST1"
@@ -101,26 +100,19 @@ DOLRO ; Ensure symbol table is saved correctly
  S X="^TMP(""ZZUTZOSV"","
  ; Save the symbol table
  D DOLRO^%ZOSV
- D CHKEQ^XTMUNIT(^TMP("ZZUTZOSV","TEST"),"TEST1","DOLRO^%ZSOV Didn't save the correct variable value")
+ D CHKEQ^%ut(^TMP("ZZUTZOSV","TEST"),"TEST1","DOLRO^%ZSOV Didn't save the correct variable value")
  ; Debug
- ZWR ^TMP("ZZUTZOSV",*)
+ ; ZWR ^TMP("ZZUTZOSV",*)
  ; Kill test variable
  K ^TMP("ZZUTZOSV")
  Q
  ;
-XTROU ;
- ;;
- ; Entry points for tests are specified as the third semi-colon piece,
- ; a description of what it tests is optional as the fourth semi-colon
- ; piece on a line. The first line without a third piece terminates the
- ; search for TAGs to be used as entry points
-XTENT ;
- ;;SIMPL; Simple $ZROUTINES (single routine dir) - NO shared object
- ;;SHRONLY; $ZROUTINES - ONLY shared object
- ;;NOSHR; Simple $ZROUTINES (split objects and routines) - NO shared object
- ;;SHROBJ; Simple $ZROUTINES (split objects and routines) - WITH shared object
- ;;PSDIR; Medium $ZROUTINES (multiple directories) - WITH shared object
- ;;ACTJ; Ensure ACTJ returns value in global first
- ;;ACTJ0; Force ACTJ to determine number of jobs running
- ;;DOLRO; Ensure Symbol table is saved correctly
- Q
+TMTRAN ; @TEST Make sure that Taskman is running
+ I '$$TM^%ZTLOAD() D FAIL^%ut("Can't run this test. Taskman isn't running.") QUIT
+ ;
+ N ZTSK D Q^XUTMTZ
+ D CHKTF^%ut(ZTSK)
+ N TOTALWAIT S TOTALWAIT=0
+ F  Q:'$D(^%ZTSK(ZTSK))  H .05 S TOTALWAIT=TOTALWAIT+.05 Q:TOTALWAIT>2
+ D CHKTF^%ut(TOTALWAIT<2,"Taskman didn't process task")
+ QUIT
