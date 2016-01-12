@@ -1,8 +1,8 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2015-12-21  1:45 PM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-01-11  5:30 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
- D:'($D(^XUTL("XUSYS","CNT"))#10)
+ I '$G(^XUTL("XUSYS","CNT"))!($G(^XUTL("XUSYS","CNT","SEC"))>($$SEC^XLFDT($H)+3600)) D
  . N I,IO,LINE
  . S IO=$IO
  . O "FTOK":(SHELL="/bin/sh":COMMAND="$gtm_dist/mupip ftok "_$V("GVFILE","DEFAULT"):READONLY)::"PIPE" U "FTOK"
@@ -10,7 +10,8 @@ ACTJ() ; # active jobs
  . O "IPCS":(SHELL="/bin/sh":COMMAND="ipcs -mi "_$TR($P($P(LINE,"::",3),"[",1)," ",""):READONLY)::"PIPE" U "IPCS"
  . F I=1:1 R LINE Q:$ZEO  I 1<$L(LINE,"nattch=") S ^XUTL("XUSYS","CNT")=+$P(LINE,"nattch=",2) Q
  . U IO C "FTOK" C "IPCS"
- Q +$G(^XUTL("XUSYS","CNT"))
+ . S ^XUTL("XUSYS","CNT","SEC")=$$SEC^XLFDT($H)
+ Q ^XUTL("XUSYS","CNT")
  ;
 AVJ() ; # available jobs, Limit is in the OS.
  N V,J
@@ -39,19 +40,24 @@ PARSEZRO(DIRS,ZRO) ; Parse $zroutines properly into an array
  . S DIRS(CNT)=DIRS(CNT)_" " ; prep for next piece
  QUIT
  ;
-ZRO1ST(DIRS) ; $$ Get first routine directory
- N OUT ; $$ return
- N %1 S %1=DIRS(1) ; 1st directory
- ; Parse with (...)
- I %1["(" DO
- . S OUT=$P(%1,"(",2)
- . I OUT[" " S OUT=$P(OUT," ")
- . E  S OUT=$P(OUT,")")
- ; no parens
- E  S OUT=%1
+ZRO1ST(DIRS) ; $$ Get first usable routine directory
+ N OUT S OUT="" ; $$ Return; default empty
+ N I F I=0:0 S I=$O(DIRS(I)) Q:'I  D  Q:OUT]""  ; 1st directory
+ . N %1 S %1=DIRS(I)
+ . N SO S SO=$E(%1,$L(%1)-2,$L(%1))
+ . S SO=$$UP^XLFSTR(SO)
+ . I SO=".SO" QUIT
+ . ;
+ . ; Parse with (...)
+ . I %1["(" DO
+ . . S OUT=$P(%1,"(",2)
+ . . I OUT[" " S OUT=$P(OUT," ")
+ . . E  S OUT=$P(OUT,")")
+ . ; no parens
+ . E  S OUT=%1
  ;
  ; Add trailing slash
- I $E(OUT,$L(OUT))'="/" S OUT=OUT_"/"
+ I OUT]"",$E(OUT,$L(OUT))'="/" S OUT=OUT_"/"
  QUIT OUT
  ;
 TEMP() ; Return path to temp directory
