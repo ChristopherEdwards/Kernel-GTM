@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-01-11  5:30 PM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-01-13  10:15 AM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -151,7 +151,7 @@ GETENV ;Get environment Return Y='UCI^VOL^NODE^BOX LOOKUP'
  Q
  ;
 VERSION(X) ;return OS version, X=1 - return OS
- Q $S($G(X):$P($ZV," V"),1:+$P($ZV," V",2))
+ Q $S($G(X):$P($ZV," ",3,99),1:$P($P($ZV," V",2)," "))
  ;
 OS() ;
  Q "UNIX"
@@ -174,16 +174,30 @@ PRI() ;Check if a mixed OS enviroment.
  Q 1
  ;
 T0 ; start RT clock
+ N V S V=$$VERSION(0)
+ I +V'<6.2,+$P(V,"-",2)'<2 S %ZH0=$ZH QUIT
  S %ZH0=$S(""'=$T(ZHOROLOG^%POSIX):$$ZHOROLOG^%POSIX,1:$H)
  Q
  ;
 T1 ; store RT datum w/ZHDIF
+ N V S V=$$VERSION(0)
+ I +V'<6.2,+$P(V,"-",2)'<2 S %ZH1=$ZH QUIT
  S %ZH1=$S(""'=$T(ZHOROLOG^%POSIX):$$ZHOROLOG^%POSIX,1:$H)
  Q
  ;
 ZHDIF ;Display dif of two $ZH's
- W !," ET=",$J(($P(%ZH1,",")-$P(%ZH0,",")*86400)+($P(%ZH1,",",2)-$P(%ZH0,",",2)),6,2)
- Q
+ N SC0 S SC0=$P(%ZH0,",",2)
+ N SC1 S SC1=$P(%ZH1,",",2)
+ N DC0 S DC0=$P(%ZH0,",")*86400
+ N DC1 S DC1=$P(%ZH1,",")*86400
+ N MCS0 S MCS0=$P(%ZH0,",",3)/1000000
+ N MCS1 S MCS1=$P(%ZH1,",",3)/1000000
+ ;
+ N T0 S T0=SC0+DC0+MCS0
+ N T1 S T1=SC1+DC1+MCS1
+ ;
+ S %ZT2=T1-T0
+ QUIT
  ;
  ;Code moved to %ZOSVKR, Comment out if needed.
 LOGRSRC(OPT,TYPE,STATUS) ;record resource usage in ^XTMP("KMPR"
@@ -226,7 +240,7 @@ RETURN(%COMMAND) ; ** Private Entry Point: execute a shell command & return the 
  Q LINE
  ;
 STRIPCR(%DIRECT) ; ** Private Entry Point: strip extraneous CR from end of lines of all
- ; routines in %DIRECTORY Linux directory
+ ; routines in %DIRECT Linux directory
  ;
  ZSYSTEM "perl -pi -e 's/\r\n$/\n/' "_%DIRECT_"[A-K]*.m"
  ZSYSTEM "perl -pi -e 's/\r\n$/\n/' "_%DIRECT_"[L-S]*.m"
