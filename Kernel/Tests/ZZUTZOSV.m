@@ -1,4 +1,4 @@
-ZZUTZOSV ;KRM/CJE - ZOSV2 unit tests ;2016-01-11  5:52 PM; 3/14/14 3:53P
+ZZUTZOSV ;KRM/CJE - ZOSV2 unit tests ;2016-01-16  12:48 PM; 3/14/14 3:53P
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
@@ -116,3 +116,127 @@ TMTRAN ; @TEST Make sure that Taskman is running
  F  Q:'$D(^%ZTSK(ZTSK))  H .05 S TOTALWAIT=TOTALWAIT+.05 Q:TOTALWAIT>2
  D CHKTF^%ut(TOTALWAIT<2,"Taskman didn't process task")
  QUIT
+ ;
+OSOUT ; @TEST Test Call Out to OS to get hostname via GETUCI^%ZOSV
+ N HOSTNAME
+ O "/etc/hostname":readonly U "/etc/hostname" R HOSTNAME:0 C "/etc/hostname"
+ N Y D GETENV^%ZOSV
+ D CHKEQ^%ut($P(Y,"^",3),HOSTNAME)
+ QUIT
+ ;
+OS ; @TEST OS
+ D CHKEQ^%ut($$OS^%ZOSV(),"UNIX")
+ QUIT
+ ;
+VERSION ; @TEST VERSION
+ N V0 S V0=$$VERSION^%ZOSV(0)
+ N OS S OS=$$VERSION^%ZOSV(1)
+ D CHKTF^%ut(V0,"Must be positive")
+ D CHKTF^%ut($L(V0,"-")=2,"Must be in xx.xxxx")
+ D CHKTF^%ut(OS["nux"!(OS["nix")!(OS["BSD"))
+ QUIT
+ ;
+PARSIZ ; @TEST PARSIZE NOOP
+ N X
+ D PARSIZ^%ZOSV
+ D SUCCEED^%ut
+ QUIT
+NOLOG ; @TEST NOLOG NOOP
+ N Y
+ D PARSIZ^%ZOSV
+ D SUCCEED^%ut
+ QUIT
+ ;
+SHARELIC ; @TEST SHARELIC NOOP
+ D SHARELIC^%ZOSV()
+ D SUCCEED^%ut
+ QUIT
+ ;
+PRIORITY ; @TEST PRIORITY NOOP
+ D PRIORITY^%ZOSV
+ D SUCCEED^%ut
+ QUIT
+ ;
+PRIINQ ; @TEST PRIINQ() NOOP
+ N % S %=$$PRIINQ^%ZOSV()
+ D SUCCEED^%ut
+ QUIT
+ ;
+BAUD ; @TEST BAUD NOOP
+ N X D BAUD^%ZOSV
+ D SUCCEED^%ut
+ S X="UNKNOWN"
+ QUIT
+ ;
+LGR ; @TEST Last Global Reference
+ S ^TMP($J)=""
+ I ^TMP($J)
+ N R S R=$$LGR^%ZOSV()
+ D CHKEQ^%ut(R,$NA(^TMP($J)))
+ K ^TMP($J)
+ QUIT
+ ;
+EC ; @TEST $$EC
+ N A,%
+ N $ET S $ET="S A=$$EC^%ZOSV,$EC="""" G EC1"
+ S %=1/0
+EC1 ;
+ D CHKTF^%ut(A["divide")
+ QUIT
+ ;
+ZTMGRSET ; @TEST ZTMGRSET Renames Routines on GT.M
+ ;ZEXCEPT: shell
+ N %ZR
+ N RTNFS S RTNFS="_ZTLOAD1.o"
+ D SILENT^%RSEL("%ZTLOAD1","OBJ")
+ N FILE S FILE=%ZR("%ZTLOAD1")_RTNFS
+ N COMM S COMM="stat -c %X "_FILE
+ O "P":(shell="/bin/sh":comm=COMM)::"pipe"
+ U "P" N %Y R %Y:1 C "P"
+ N ZTOS S ZTOS=$$OSNUM^ZTMGRSET()
+ N SCR S SCR="I 0"
+ N ZTMODE S ZTMODE=2
+ N IOP S IOP="NULL" D ^%ZIS U IO
+ D DOIT^ZTMGRSET
+ D ^%ZISC
+ D SILENT^%RSEL("%ZTLOAD1","OBJ")
+ N FILE S FILE=%ZR("%ZTLOAD1")_RTNFS
+ N COMM S COMM="stat -c %X "_FILE
+ O "P":(shell="/bin/sh":comm=COMM)::"pipe"
+ U "P" N %YY R %YY:1 C "P"
+ D CHKTF^%ut(%YY'<%Y)
+ QUIT
+ZHOROLOG ; @TEST $ZHOROLOG Functions
+ N %ZH0,%ZH1,%ZH2
+ D T0^%ZOSV
+ D CHKTF^%ut(%ZH0)
+ D CHKTF^%ut($L(%ZH0,",")=4)
+ D T1^%ZOSV
+ D CHKTF^%ut(%ZH1)
+ D CHKTF^%ut($L(%ZH1,",")=4)
+ D ZHDIF^%ZOSV
+ D CHKTF^%ut(%ZH2<.001,"%ZH2 is "_%ZH2)
+ QUIT
+STRIPCR ; @TEST Strip CR
+ N %ZR
+ D SILENT^%RSEL("ZTLOAD1","SRC")
+ D STRIPCR^ZOSVGUX(%ZR("ZTLOAD1"))
+ D SUCCEED^%ut
+ QUIT
+ ;
+TEMP ; @TEST getting temp directory
+ N TMP S TMP=$$TEMP^%ZOSV()
+ N FN S FN=TMP_"/test.txt"
+ O FN:newvesrion
+ U FN
+ W "TEST",!
+ C FN:delete
+ D SUCCEED^%ut
+ QUIT
+ ;
+PASS ; @TEST PASTHRU and NOPASS
+ D PASSALL^%ZOSV
+ D NOPASS^%ZOSV
+ D SUCCEED^%ut
+ QUIT
+ ;
