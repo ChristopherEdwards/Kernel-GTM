@@ -207,6 +207,7 @@ ZTMGRSET ; @TEST ZTMGRSET Renames Routines on GT.M
  D CHKTF^%ut(%YY'<%Y)
  QUIT
 ZHOROLOG ; @TEST $ZHOROLOG Functions
+ Q:$$VERSION^%ZOSV<6.3
  N %ZH0,%ZH1,%ZH2
  D T0^%ZOSV
  D CHKTF^%ut(%ZH0)
@@ -240,3 +241,14 @@ PASS ; @TEST PASTHRU and NOPASS
  D SUCCEED^%ut
  QUIT
  ;
+NSLOOKUP ; @TEST Test DNS Utilities
+ ; HOST
+ N % S %=$$HOST^XLFNSLK("208.67.220.220")
+ D CHKTF^%ut(%["opendns")
+ N % S %=$$HOST^XLFNSLK("")
+ D SUCCEED^%ut
+ N % S %=$$HOST^XLFNSLK("93.184.216.34") ; example.com doesn't have reverse dns
+ D CHKTF^%ut(%="")
+ QUIT
+ ; ADDRESS
+ ; MAIL

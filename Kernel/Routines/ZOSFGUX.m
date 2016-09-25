@@ -36,7 +36,7 @@ Z ;
  ;;BRK
  ;;U $I:(CENABLE)
  ;;DEL
- ;;D DEL^%ZOSV2(X)
+ ;;D DEL^%ZOSV2(X) ;N %RD,%OD S %RD=$P($S($ZRO["(":$P($P($ZRO,"(",2),")"),1:$ZRO)," ")_"/",%OD=$S($ZRO["(":$P($ZRO,"(",1)_"/",1:%RD) ZSYSTEM "rm -f "_%RD_X_".m" ZSYSTEM "rm -f "_%OD_X_".o"
  ;;EOFF
  ;;U $I:(NOECHO)
  ;;EON
@@ -50,7 +50,7 @@ Z ;
  ;;GD
  ;;G ^%GD
  ;;$INC
- ;;1
+ ;;0
  ;;JOBPARAM
  ;;G JOBPAR^%ZOSV
  ;;LABOFF
@@ -104,7 +104,7 @@ Z ;
  ;;SS
  ;;D ^ZSY
  ;;SAVE
- ;;D SAVE^%ZOSV2(X)
+ ;;D SAVE^%ZOSV2(X) ;N %I,%F S %I=$I,%F=$P($S($ZRO["(":$P($P($ZRO,"(",2),")"),1:$ZRO)," ")_"/"_X_".m" O %F:(NEWVERSION) U %F X "F  S XCN=$O(@(DIE_XCN_"")"")) Q:+XCN'=XCN  S %=@(DIE_XCN_"",0)"") Q:$E(%,1)=""$""  I $E(%)'="";"" W %,!" C %F U %I
  ;;SIZE
  ;;S Y=0 F I=1:1 S %=$T(+I) Q:%=""  S Y=Y+$L(%)+2 ; <=====
  ;;TEST
@@ -128,7 +128,7 @@ Z ;
  ;;UCICHECK
  ;;S Y=1
  ;;UPPERCASE
- ;;S Y=$ZCO(X,"U")
+ ;;S Y=$TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  ;;XY
  ;;S $X=DX,$Y=DY ; <=====
  ;;VOL
