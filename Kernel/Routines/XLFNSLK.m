@@ -35,8 +35,10 @@ ADDRESS(N,T) ;Get a IP address from a name
  . . S X=$SYSTEM.INetInfo.HostNameToAddr(N,2,0) ;Get IPv6 address
  . . S Y=$$FORCEIP6^XLFIPV(X) ;Format IPv6 address
  . I ($P(Y,":")="0000")!(T="A") S Y=$SYSTEM.INetInfo.HostNameToAddr(N,1,0) ;Get IPv4 address
- ;Non-cache systems and lookups other than "A" or "AAAA"
- I +$SY=47&()
+ I +$SY=47 D  Q Y
+ . I (T="AAAA") S Y=$$FORCEIP6^XLFIPV($$RETURN^%ZOSV("dig "_T_" "_N_" +noall +answer +short")) QUIT  ; return the last ip address in the list
+ . I (T="A") S Y=$$FORCEIP4^XLFIPV($$RETURN^%ZOSV("dig "_T_" "_N_" +noall +answer +short")) QUIT  ; return the last ip address in the list
+ ;Non-cache/GT.M systems and lookups other than "A" or "AAAA"
  D NS(.XLF,N,T)
  S Y="" F I=1:1:XLF("ANCOUNT") S:$D(XLF("AN"_I_"DATA")) Y=Y_XLF("AN"_I_"DATA")_","
  Q $E(Y,1,$L(Y)-1)

@@ -242,13 +242,24 @@ PASS ; @TEST PASTHRU and NOPASS
  QUIT
  ;
 NSLOOKUP ; @TEST Test DNS Utilities
- ; HOST
+ ; REVERSE DNS
  N % S %=$$HOST^XLFNSLK("208.67.220.220")
  D CHKTF^%ut(%["opendns")
+ N % S %=$$HOST^XLFNSLK("2607:F8B0:400D:0C01:0000:0000:0000:0066")
+ D CHKTF^%ut(%["1e100")
  N % S %=$$HOST^XLFNSLK("")
  D SUCCEED^%ut
  N % S %=$$HOST^XLFNSLK("93.184.216.34") ; example.com doesn't have reverse dns
  D CHKTF^%ut(%="")
+ ;
+ ; FORWARD DNS
+ N IPV6 S IPV6=$$VERSION^XLFIPV
+ I IPV6 D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"0000:0000:0000:0000:0000:0000:0000:0001") I 1
+ E  D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"127.0.0.1")
+ D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","A"),"127.0.0.1")
+ D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","AAAA"),"0000:0000:0000:0000:0000:0000:0000:0001")
  QUIT
- ; ADDRESS
- ; MAIL
+ ;
+IPV6 ; @TEST Test GT.M support for IPV6
+ D CHKEQ^%ut($$VERSION^XLFIPV(),1)
+ QUIT
