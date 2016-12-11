@@ -126,7 +126,7 @@ LVXD ;Open port and listen
  ;
 LGTM ;GT.M single thread server
  N %A K ^TMP("ZISTCP",$J)
- ;S $ZINTERRUPT="I $$JOBEXAM^ZU($ZPOSITION)"
+ S $ZINTERRUPT="I $$JOBEXAM^ZU($ZPOSITION)"
  S NIO="SCK$"_$S($J>86400:$J,1:84600+$J) ;Construct a dummy, but "unique" devicename for job
  D LOG("Open for Listen "_NIO)
  ;Open the device
