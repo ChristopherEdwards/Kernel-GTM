@@ -1,5 +1,6 @@
-XUSC1C ;ISCSF/RWF - Client Interface to Server services. ;10/09/2002  17:03
- ;;8.0;KERNEL;**283**;Jul 10, 1995
+XUSC1C ;ISCSF/RWF - Client Interface to Server services.;04/17/14  11:43
+ ;;8.0;KERNEL;**283,580,642**;Jul 10, 1995;Build 6
+ ;Per VA Directive 6402, this routine should not be modified.
  ;Return 0 = OK, else -1^msg
 EN(INPUT,OUTPUT,TYPE) ;Call to connect to Server
  N X,Y,XUSCCMD,XUSCDAT,XUSCER,XUSCTIME,XUSCTRC,XUSCEXIT
@@ -27,20 +28,21 @@ OPEN ;Open connection
  N IPCNT,IPA
  D TRACE("Make Connection")
  F IPCNT=1:1 S IPA=$P(XUSC("IP"),",",IPCNT) Q:IPA=""  D
- . I IPA'?1.3N1P1.3N1P1.3N1P1.3N S IPA=$P($$ADDRESS^XLFNSLK(IPA),",")
- . I IPA'?1.3N1P1.3N1P1.3N1P1.3N Q
+ . I '$$VALIDATE^XLFIPV(IPA) S IPA=$P($$ADDRESS^XLFNSLK(IPA),",")  ;p642 ICR#5844
+ . I '$$VALIDATE^XLFIPV(IPA) Q  ;p642 ICR#5844
  . D TRACE("Call IP "_IPA)
  . F XUSCCNT=0:1:5 D  Q:'POP
  . . D CALL^%ZISTCP(IPA,XUSC("SOCK"),1)
- I POP S XUSC("STAT")="-1^Inital Connection Failed" Q
+ I POP S XUSC("STAT")="-1^Initial Connection Failed" Q
  D TRACE("Got Connection")
  U IO
  Q
 HELO ;start conversation
+ N I ;p638
  S X=$$POST("HELO "_$$KSP^XUPARAM("WHERE"))
  I $E(X,1)'=2 S XUSC("STAT")="-1^Initial HELO Failed",XUSC("REC")=X
  I $E(X,1,3)="421" S XUSC("STAT")="-1^Busy"
- F  Q:$E(XUSCCMD,1,3)=220  D CREAD^XUSC1S
+ F I=0:1:5 Q:$E(XUSCCMD,1,3)=220  D CREAD^XUSC1S ;p642 quit after 6 tries (read failed)
  Q
 SERV ;Requested Service
  D TRACE("Service Request: "_TYPE)
@@ -75,7 +77,7 @@ TRACE(S1) ;
  I S1=-1 K ^TMP("XUSC1",$J) Q
  Q:'$G(XUSCDBUG)
  S H=$P($H,",",2),H=(H\3600)_":"_(H#3600\60)_":"_(H#60)_" "
- L +^TMP("XUSC1",$J)
+ L +^TMP("XUSC1",$J):1
  S %=$G(^TMP("XUSC1",$J,0))+1,^(0)=%,^(%)=H_XUSCTRC_S1
  L -^TMP("XUSC1",$J)
  Q
