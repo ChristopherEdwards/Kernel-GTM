@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC - $View commands for Open M for NT.  ;09/15/08  12:12
+%ZOSV ;SFISC/AC - $View commands for Open M for NT.  ; 12/4/16 3:59pm
  ;;8.0;KERNEL;**34,94,107,118,136,215,293,284,385,425,440,499**;Jul 10, 1995;Build 14
  ;Per VHA Directive 2004-038, this routine should not be modified
 ACTJ() ;# Active jobs
@@ -21,8 +21,8 @@ AVJ() ;# available jobs
  . S T=+LMFLIM+$P(LMFLIM,"|",2) ;Check the license total
  . S AVJ=$S(T<MAXPID:X,1:MAXPID-$$ACTJ) ;Return the smaller of license or pid
  ;To get available jobs from Cache 5.0 up
- I V'<5 D  Q AVJ
- . X "S AVJ=$system.License.LUAvailable()"
+ ; I V'<5 D  Q AVJ
+ ; . X "S AVJ=$system.License.LUAvailable()"
  ;Return fixed value not known version
  Q 15
  ;
