@@ -1,5 +1,5 @@
-TERMINAL TYPE
-ZWR
+OSEHRA ZGO Export: TERMINAL TYPE
+09-DEC-2016 09:55:25 ZWR
 ^%ZIS(2,-1,2)="W ""! 0 75 750 1"",!,""V MODE 0"",!,""V ENCODER 1"",!,""V SPEED 3.25 1.2"",!,""PITCH 100"",!"
 ^%ZIS(2,-1,203)="U B9X12 (3,2,90) 160 100 "
 ^%ZIS(2,-1,205)="U B9X12 (2,2,90) 140 100 "
@@ -1165,7 +1165,7 @@ ZWR
 ^%ZIS(2,196,9)="HFS for Windows printing"
 ^%ZIS(2,197,0)="P-IMAGING^0"
 ^%ZIS(2,197,1)="80^#^64^$C(8)"
-^%ZIS(2,197,3)="D CLOSE^MAGGTU5 X ""C IO:""""D"""""" K IO"
+^%ZIS(2,197,3)="D CLOSE^MAGGTU5 X ""C IO:""""D"""""" K IO(1,IO)"
 ^%ZIS(2,198,0)="P-MAIL"
 ^%ZIS(2,198,1)="132^#^66^$C(8)"
 ^%ZIS(2,199,0)="P-DEC80"
