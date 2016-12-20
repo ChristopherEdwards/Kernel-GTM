@@ -3,13 +3,24 @@
  ;
 ACTJ() ; # active jobs
  I '$G(^XUTL("XUSYS","CNT"))!($G(^XUTL("XUSYS","CNT","SEC"))>($$SEC^XLFDT($H)+3600)) D
- . N I,IO,LINE
- . S IO=$IO
- . O "FTOK":(SHELL="/bin/sh":COMMAND="$gtm_dist/mupip ftok "_$V("GVFILE","DEFAULT"):READONLY)::"PIPE" U "FTOK"
- . F I=1:1:3 R LINE
- . O "IPCS":(SHELL="/bin/sh":COMMAND="ipcs -mi "_$TR($P($P(LINE,"::",3),"[",1)," ",""):READONLY)::"PIPE" U "IPCS"
- . F I=1:1 R LINE Q:$ZEO  I 1<$L(LINE,"nattch=") S ^XUTL("XUSYS","CNT")=+$P(LINE,"nattch=",2) Q
- . U IO C "FTOK" C "IPCS"
+ . I $$UP^XLFSTR($ZV)["LINUX" D
+ .. N I,IO,LINE
+ .. S IO=$IO
+ .. O "FTOK":(SHELL="/bin/sh":COMMAND="$gtm_dist/mupip ftok "_$V("GVFILE","DEFAULT"):READONLY)::"PIPE" U "FTOK"
+ .. F I=1:1:3 R LINE
+ .. O "IPCS":(SHELL="/bin/sh":COMMAND="ipcs -mi "_$TR($P($P(LINE,"::",3),"[",1)," ",""):READONLY)::"PIPE" U "IPCS"
+ .. F I=1:1 R LINE Q:$ZEO  I 1<$L(LINE,"nattch=") S ^XUTL("XUSYS","CNT")=+$P(LINE,"nattch=",2) Q
+ .. U IO C "FTOK" C "IPCS"
+ . ;
+ . I $$UP^XLFSTR($ZV)["DARWIN" D  ; OSEHRA/SMH - Should work on Linux too!
+ .. N I,IO,LINE
+ .. S IO=$IO
+ .. ; Count number of processes returned by lsof accessing this database; and trim using xargs
+ .. O "LSOF":(SHELL="/bin/sh":COMMAND="lsof -t "_$V("GVFILE","DEFAULT")_" | wc -l | xargs":READONLY)::"PIPE" U "LSOF"
+ .. F  R LINE:1 Q:$ZEOF  Q:LINE
+ .. S ^XUTL("XUSYS","CNT")=LINE
+ .. U IO C "LSOF"
+ . ;
  . S ^XUTL("XUSYS","CNT","SEC")=$$SEC^XLFDT($H)
  Q ^XUTL("XUSYS","CNT")
  ;
@@ -27,7 +38,7 @@ RTNDIR() ; primary routine source directory
  ;
 PARSEZRO(DIRS,ZRO) ; Parse $zroutines properly into an array
  ; Eat spaces
- F  Q:($E(ZRO)'=" ")  S ZRO=$E(ZRO,2,999)
+ F  Q:($E(ZRO)'=" ")  S ZRO=$E(ZRO,2,1024) ; 1023 is the GT.M maximum
  ;
  N PIECE
  N I
@@ -146,7 +157,7 @@ NOLOG ;
  S Y=0 Q
  ;
 GETENV ;Get environment Return Y='UCI^VOL^NODE^BOX LOOKUP'
- N %HOST,%V S %V=^%ZOSF("PROD"),%HOST=$$RETURN("hostname -s")
+ N %HOST,%V S %V=^%ZOSF("PROD"),%HOST=$P($SYSTEM,",",2) ; Uses env variable gtm_sysid
  S Y=$TR(%V,",","^")_"^"_%HOST_"^"_$P(%V,",",2)_":"_%HOST
  Q
  ;
@@ -230,21 +241,12 @@ DEVOPN ;List of Devices opened.  Linux only
  F  S %I=$O(%Y("D",%I)) Q:'%I  S Y=Y_%X_$P(%Y("D",%I)," "),%X=","
  Q
  ;
-RETURN(%COMMAND) ; ** Private Entry Point: execute a shell command & return the last line **
+RETURN(%COMMAND) ; [Public] execute a shell command & return the last line **
  ; %COMMAND is the string value of the Linux command
  N IO,LINE,TMP
  S IO=$IO
  O "COMMAND":(SHELL="/bin/sh":COMMAND=%COMMAND:READONLY)::"PIPE" U "COMMAND"
- F  R TMP Q:$ZEO  S LINE=TMP
+ F  R TMP:1 Q:$ZEO  S LINE=TMP
  U IO C "COMMAND"
- Q LINE
- ;
-STRIPCR(%DIRECT) ; ** Private Entry Point: strip extraneous CR from end of lines of all
- ; routines in %DIRECT Linux directory
- ;
- ZSYSTEM "perl -pi -e 's/\r\n$/\n/' "_%DIRECT_"[A-K]*.m"
- ZSYSTEM "perl -pi -e 's/\r\n$/\n/' "_%DIRECT_"[L-S]*.m"
- ZSYSTEM "perl -pi -e 's/\r\n$/\n/' "_%DIRECT_"[T-z]*.m"
- ZSYSTEM "perl -pi -e 's/\r\n$/\n/' "_%DIRECT_"[_]*.m"
- Q
+ Q $G(LINE)
  ;
