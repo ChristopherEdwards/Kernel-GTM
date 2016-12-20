@@ -68,7 +68,7 @@ HALT I $D(^XUTL("XQ",$J)) D:$G(DUZ)>0 BYE^XUSCLEAN
 JOBEXAM(%ZPOS) ;
  N %reference S %reference=$REFERENCE
  S ^XUTL("XUSYS",$J,0)=$H,^XUTL("XUSYS",$J,"INTERRUPT")=$G(%ZPOS)
- I %ZPOS["^" S ^XUTL("XUSYS",$J,"codeline")=$T(@%ZPOS)
+ I %ZPOS'["GTM$DMOD" S ^XUTL("XUSYS",$J,"codeline")=$T(@%ZPOS)
  K ^XUTL("XUSYS",$J,"JE")
  I $G(^XUTL("XUSYS","COMMAND"))'="EXAM" ZSHOW "SD":^XUTL("XUSYS",$J,"JE")
  I $G(^XUTL("XUSYS","COMMAND"))="EXAM" ZSHOW "*":^XUTL("XUSYS",$J,"JE")
