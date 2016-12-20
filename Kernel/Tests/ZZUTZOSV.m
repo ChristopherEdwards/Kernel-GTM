@@ -1,8 +1,8 @@
-ZZUTZOSV ;KRM/CJE - ZOSV2 unit tests ;2016-01-16  12:48 PM; 3/14/14 3:53P
+ZZUTZOSV ;KRM/CJE - ZOSV2 unit tests ;2016-12-20  2:38 PM; 3/14/14 3:53P
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
- I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",2)
+ I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",3)
  Q
  ;
 ZRO1 ; @TEST $ZROUTINES Parsing Single Object Multiple dirs
@@ -149,7 +149,7 @@ PARSIZ ; @TEST PARSIZE NOOP
  QUIT
 NOLOG ; @TEST NOLOG NOOP
  N Y
- D PARSIZ^%ZOSV
+ D NOLOG^%ZOSV
  D SUCCEED^%ut
  QUIT
  ;
@@ -253,13 +253,12 @@ NSLOOKUP ; @TEST Test DNS Utilities
  D CHKTF^%ut(%="")
  ;
  ; FORWARD DNS
- ; dig doesn't return an IPV6 localhost address on Mac; don't know why.
- N ISMAC S ISMAC=$ZV["Darwin"
+ ; dig doesn't return an IPV6 localhost address.
  N IPV6 S IPV6=$$VERSION^XLFIPV
- I IPV6,'ISMAC D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"0000:0000:0000:0000:0000:0000:0000:0001") I 1
- E  I 'ISMAC D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"127.0.0.1")
+ I IPV6 D CHKTF^%ut($$ADDRESS^XLFNSLK("localhost")["0000:0000:0000:0000:0000:0000:0000:000") I 1
+ E  D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"127.0.0.1")
  D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","A"),"127.0.0.1")
- I 'ISMAC D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","AAAA"),"0000:0000:0000:0000:0000:0000:0000:0001")
+ D CHKTF^%ut($$ADDRESS^XLFNSLK("localhost","AAAA")["0000:0000:0000:0000:0000:0000:0000:000")
  QUIT
  ;
 IPV6 ; @TEST Test GT.M support for IPV6

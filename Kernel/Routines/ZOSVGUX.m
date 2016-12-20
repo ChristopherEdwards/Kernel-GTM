@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-01-13  10:15 AM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-20  2:23 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -186,13 +186,13 @@ PRI() ;Check if a mixed OS enviroment.
  ;
 T0 ; start RT clock
  N V S V=$$VERSION(0)
- I +V'<6.2,+$P(V,"-",2)'<2 S %ZH0=$ZH QUIT
+ I +V'<6.2 S %ZH0=$ZH QUIT
  S %ZH0=$S(""'=$T(ZHOROLOG^%POSIX):$$ZHOROLOG^%POSIX,1:$H)
  Q
  ;
 T1 ; store RT datum w/ZHDIF
  N V S V=$$VERSION(0)
- I +V'<6.2,+$P(V,"-",2)'<2 S %ZH1=$ZH QUIT
+ I +V'<6.2 S %ZH1=$ZH QUIT
  S %ZH1=$S(""'=$T(ZHOROLOG^%POSIX):$$ZHOROLOG^%POSIX,1:$H)
  Q
  ;
@@ -207,7 +207,7 @@ ZHDIF ;Display dif of two $ZH's
  N T0 S T0=SC0+DC0+MCS0
  N T1 S T1=SC1+DC1+MCS1
  ;
- S %ZT2=T1-T0
+ S %ZH2=T1-T0
  QUIT
  ;
  ;Code moved to %ZOSVKR, Comment out if needed.
