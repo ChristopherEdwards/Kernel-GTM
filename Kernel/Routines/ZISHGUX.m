@@ -1,5 +1,5 @@
-%ZISH ;ISF/AC,RWF - GT.M for UNIX Host file Control ;01/04/2005  08:13
- ;;8.0;KERNEL;**275,306**;Jul 10, 1995;
+%ZISH ;ISF/AC,RWF - GT.M for VMS/Unix Host file Control ;2016-12-20  3:02 PM
+ ;;8.0;KERNEL;**275,306,385,524**;Jul 10, 1995;Build 12
  ; for GT.M for Unix/VMS, version 4.3
  ;
 OPENERR ;
@@ -19,20 +19,20 @@ OPEN(X1,X2,X3,X4,X5,X6) ;SR. Open file
  S:$E(Y)=":" Y=$E(Y,2,999) S %IO=X2_X3,%I2="%IO:"_$S($L(Y):"("_Y_")",1:"")_":3"
  O @%I2 S %T=$T
  I '%T S POP=1 Q
- S IO=%IO,IO(1,IO)="",IOT="HFS",POP=0 D SUBTYPE^%ZIS3($G(X6))
+ S IO=%IO,IO(1,IO)="",IOT="HFS",IOM=80,IOSL=60,POP=0 D SUBTYPE^%ZIS3($G(X6))
  I $G(X1)]"" D SAVDEV^%ZISUTL(X1)
- U IO U $P ;Enable use of $ZA to test EOF condition.
+ ;U IO U $P ;Don't do a USE.
  Q
 OPNERR ;error on open
  S POP=1,$ECODE=""
- U:$G(%P)]"" %P
+ ;U:$G(%P)]"" %P
  Q
  ;
 CLOSE(X) ;SR. Close HFS device not opened by %ZIS.
  ;X1=Handle name, IO=device
  I IO]"" C IO K IO(1,IO)
  I $G(X)]"" D RMDEV^%ZISUTL(X)
- D HOME^%ZIS
+ I $D(IO("HOME"))!$D(^XUTL("XQ",$J,"IOS")) D HOME^%ZIS
  Q
 DEL(%ZX1,%ZX2) ;ef,SR. Del fl(s)
  ;S Y=$$DEL^%ZISH("dir path",$NA(array))
@@ -58,40 +58,16 @@ LIST(%ZX1,%ZX2,%ZX3) ;ef,SR. Set local array holding fl names
  ;S Y=$$LIST^ZISH("/dir/","list_root","return_root")
  ;list_root can have XX("A*"), XX("test.com")...
  ;Both arrays passed as $NA values (closed roots).
- N %IO,%X,%ZISH,%ZISH1,%ZISHIO,%ZX,POP,X,%ZISHDL1,%ZISHDL2,%ZISHDN1,%ZISHDN2
- N $ETRAP,$ESTACK S $ETRAP="G LSTEOF^%ZISH",%ZX1=$$DEFDIR($G(%ZX1))
- S %IO=$I,%ZISHDN1="_ZISH"_$J_".TMPA",%ZISHDN2="ZISH"_$J_".TMPB"
- S %ZISHDL1=%ZX1_%ZISHDN1,%ZISHDL2=%ZX1_%ZISHDN2
- S $ZT="G SPAWNERR^%ZISH"
- ;Init %ZISHDL1, %ZISHDL2 by deleteing them
- ;I $ZSEARCH(%ZISHDL1)["ZISH" ZSYSTEM "rm "_%ZISHDL1
- ;I $ZSEARCH(%ZISHDL2)["ZISH" ZSYSTEM "rm "_%ZISHDL2_";*"
+ N %ZISH,%ZIX,%ZIY,POP,X
+ N $ETRAP,$ESTACK S $ETRAP="G LSTX^%ZISH",%ZX1=$$DEFDIR($G(%ZX1))
  ;Get fls, Build listing in %ZISHDL1 with ls
- S %ZISH1=0,%ZISH=""
+ S %ZISH=""
  F  S %ZISH=$O(@%ZX2@(%ZISH)) Q:%ZISH=""  D
- . S X=$$LIST1(%ZX1_%ZISH,%ZX1)
-LSTEOF S $ZT=""
- I $L(%IO) U:$D(IO(1,%IO)) IO
- ;C %ZISHDL1 ;:DELETE
- ;I $L($ZSEARCH(%ZISHDL2)) ZSYSTEM "DEL "_%ZISHDL2
- ;I $L($ZSEARCH(%ZISHDL1)) ZSYSTEM "DEL "_%ZISHDL1_";*"
+ . S %ZIX=$ZPARSE(%ZX1_%ZISH) Q:%ZIX=""
+ . F  S %ZIY=$ZSEARCH(%ZIX) Q:%ZIY=""  S %ZIY=$ZPARSE(%ZIY,"NAME")_$ZPARSE(%ZIY,"TYPE"),@%ZX3@(%ZIY)=""
+LSTX ;
  S $ECODE=""
  Q ($Q(@%ZX3)]"")
- ;
-LIST1(%ZX,%ZD) ;Get one part of the list
- N $ET,$ES S $ET="D LSTERR^%ZISH"
- ;ZSYSTEM "ls -1 "_%ZX_" > "_%ZISHDL1
- ;O %ZISHDL1:readonly:1 U %ZISHDL1
- ;F  R %X:1 Q:$ZEOF  S @%ZX3@(%X)=""
- ;C %ZISHDL1:DELETE
- N %ZY,%ZI,%ZJ
- S %ZY=$ZSEARCH("*.X") ;Clear vector
- S %ZY=$P(%ZX,"*")
- F  S %ZI=$ZSEARCH(%ZX) Q:'$L(%ZI)!(%ZI'[%ZY)  S %ZJ=$P(%ZI,%ZD,2),@%ZX3@(%ZJ)=""
- Q 1
-LSTERR ;Error in list
- I $ZSEARCH(%ZISHDL2)["ZISH" ZSYSTEM "DEL "_%ZISHDL2_";*"
- Q 0
  ;
 SPAWNERR ;TRAP ERROR OF SPAWN
  O %ZISHDL1:READONLY:1 I $T C %ZISHDL1:DELETE
@@ -100,14 +76,14 @@ SPAWNERR ;TRAP ERROR OF SPAWN
  ;
 MV(X1,X2,Y1,Y2) ;ef,SR. Rename a fl
  ;S Y=$$MV^ZISH("/dir/","fl","/dir/","fl")
- N X,Y,%ZISHDL1
- S %ZISHDL1="ZISH"_$J_".TMPA",X1=$$DEFDIR($G(X1)),Y1=$$DEFDIR($G(Y1))
- S $ZT="SPAWNERR^%ZISH"
+ N %Z,%C
+ S X1=$$DEFDIR($G(X1)),Y1=$$DEFDIR($G(Y1))
+ S %C=$S($ZV["VMS":"RENAME ",1:"mv ")
  ;Pbv or qit
  I (X2="")!(Y2="") Q 0
- ZSYSTEM "mv "_X1_X2_" "_Y1_Y2 ;Use system command
- S Y=$ZSEARCH(Y1_Y2)
- Q $L(Y)>0
+ ZSYSTEM %C_X1_X2_" "_Y1_Y2 ;Use system rename
+ S %Z=$ZSEARCH(Y1_Y2)
+ Q $L(%Z)>0
  ;
 PWD() ;ef,SR. Print working directory
  N Y
@@ -117,10 +93,12 @@ PWD() ;ef,SR. Print working directory
  ;
 DEFDIR(DF) ;ef. Default Dir and frmt
  S DF=$G(DF) Q:DF="." "" ;Special way to get current dir.
- S:DF="" DF=$G(^XTV(8989.3,1,"DEV"))
+ S:DF="" DF=$P($G(^XTV(8989.3,1,"DEV")),"^",1)
+ ;Old code
  ;Check syntax, VMS needs : or [ ]
  I ^%ZOSF("OS")["VMS" D  Q DF ;***EXIT FOR VMS/GTM
  . N P1,P2
+ . S DF=$ZPARSE(DF)
  . I DF[":" S P1=$P(DF,":")_":",P2=$P(DF,":",2)
  . E  S P1="",P2=DF
  . I P1="",P2["$" S DF=P2 Q  ;Assume a logical
@@ -129,6 +107,7 @@ DEFDIR(DF) ;ef. Default Dir and frmt
  . Q
  ;
  ;Check syntax, Unix check leading & trailing "/"
+ S DF=$ZPARSE(DF)
  I "./"'[$E(DF) S DF="/"_DF
  I $E(DF,$L(DF))'="/" S DF=DF_"/"
  Q DF
@@ -167,8 +146,8 @@ FTG(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;ef,SR. Unload contents of host file into global
  ;p3= $NAME REFERENCE INCLUDING STARTING SUBSCRIPT
  ;p4=INCREMENT SUBSCRIPT
  ;p5=Overflow subscript, defaults to "OVF"
- N %ZA,%ZB,%ZC,%ZL,X,%OVFCNT,%CONT
- N I,%ZISH,%ZISH1,%ZISHI,%ZISHL,%ZISHLGR,%ZISHOF,%ZISHOX,%ZISHS,%ZX,%ZISHY,POP,%ZISUB,%EXIT
+ N %ZA,%ZB,%ZC,%ZL,X,%OVFCNT,%CONT,%EXIT
+ N I,%ZISH,%ZISH1,%ZISHI,%ZISHL,%ZISHLGR,%ZISHOF,%ZISHOX,%ZISHS,%ZX,%ZISHY,POP,%ZISUB
  S %ZX1=$$DEFDIR($G(%ZX1)),%ZISHOF=$G(%ZX5,"OVF")
  D MAKEREF(%ZX3,%ZX4,"%ZISHOF")
  D OPEN^%ZISH(,%ZX1,%ZX2,"R")
@@ -191,6 +170,7 @@ READNXT(REC) ;
  Q:$L(X)<256
  S %=256 F I=1:1 Q:$L(X)<%  S REC(I)=$E(X,%,%+254),%=%+255
  Q
+ ;
 GTF(%ZX1,%ZX2,%ZX3,%ZX4) ;ef,SR. Load contents of global to host file.
  ;Previously name LOAD
  ;p1=$NAME of global reference
@@ -221,7 +201,7 @@ MGTF(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;
  D OPEN^%ZISH(,%ZX3,%ZX4,%ZX5) ;Default dir set in open
  I POP Q 0
  N X
- N $ETRAP S $ETRAP="",X="ERREOF^%ZISH",@^%ZOSF("TRAP")
+ N $ETRAP S $ETRAP="S $EC="""" D CLOSE^%ZISH() Q 0"
  F  Q:'($D(@%ZISHF)#2)  S %ZX=@%ZISHF,%ZISHI=%ZISHI+1 U IO W %ZX,!
  D CLOSE() ;Normal Exit
  Q 1
