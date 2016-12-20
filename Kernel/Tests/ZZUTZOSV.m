@@ -75,21 +75,29 @@ ZRO99 ; @TEST $$RTNDIR^%ZOSV Shouldn't be Empty
  QUIT
  ;
 ACTJ ; @TEST Default path through ACTJ^ZOSV
- N JOBS,ACTJ
+ N ACTJ
  ; Run the algorithm
  S ACTJ=$$ACTJ^%ZOSV
  D CHKTF^%ut(ACTJ>0,"$$ACTJ^%ZOSV didn't return the correct value")
  Q
  ;
 ACTJ0 ; @TEST Force ^XUTL("XUSYS","CNT") to 0 to force algorithm to run
- N JOBS,ACTJ
- ; Read the global to get what the system thinks is the active jobs
- S JOBS=$G(^XUTL("XUSYS","CNT"))
  ; Force algorithm to run
  S ^XUTL("XUSYS","CNT")=0
  ; Run the algorithm
- S ACTJ=$$ACTJ^%ZOSV
- D CHKEQ^%ut(JOBS,ACTJ,"$$ACTJ^%ZOSV is out of sync with jobs on file")
+ N ACTJ S ACTJ=$$ACTJ^%ZOSV
+ D CHKTF^%ut(ACTJ,"Active Jobs must not be zero")
+ ;
+ ; Run again, but this time we get the cached result
+ N ACTJ2 S ACTJ2=$$ACTJ^%ZOSV
+ D CHKEQ^%ut(ACTJ2,ACTJ,"$$ACTJ^%ZOSV is out of sync with jobs on file")
+ ;
+ ; Force algorithm to run
+ S ^XUTL("XUSYS","CNT")=0
+ ; Run the algorithm
+ N ACTJ3 S ACTJ3=$$ACTJ^%ZOSV
+ D CHKEQ^%ut(ACTJ2,ACTJ3,"$$ACTJ^%ZOSV is out of sync with jobs on file")
+ ; 
  Q
  ;
 DOLRO ; @TEST Ensure symbol table is saved correctly
@@ -117,11 +125,9 @@ TMTRAN ; @TEST Make sure that Taskman is running
  D CHKTF^%ut(TOTALWAIT<2,"Taskman didn't process task")
  QUIT
  ;
-OSOUT ; @TEST Test Call Out to OS to get hostname via GETUCI^%ZOSV
- N HOSTNAME
- O "/etc/hostname":readonly U "/etc/hostname" R HOSTNAME:0 C "/etc/hostname"
+GETENV ; @TEST Test GETENV
  N Y D GETENV^%ZOSV
- D CHKEQ^%ut($P(Y,"^",3),HOSTNAME)
+ D CHKEQ^%ut($L(Y,"^"),4)
  QUIT
  ;
 OS ; @TEST OS
@@ -133,7 +139,7 @@ VERSION ; @TEST VERSION
  N OS S OS=$$VERSION^%ZOSV(1)
  D CHKTF^%ut(V0,"Must be positive")
  D CHKTF^%ut($L(V0,"-")=2,"Must be in xx.xxxx")
- D CHKTF^%ut(OS["nux"!(OS["nix")!(OS["BSD"))
+ D CHKTF^%ut(OS["nux"!(OS["nix")!(OS["BSD")!(OS["Darwin"))
  QUIT
  ;
 PARSIZ ; @TEST PARSIZE NOOP
@@ -218,12 +224,6 @@ ZHOROLOG ; @TEST $ZHOROLOG Functions
  D ZHDIF^%ZOSV
  D CHKTF^%ut(%ZH2<.001,"%ZH2 is "_%ZH2)
  QUIT
-STRIPCR ; @TEST Strip CR
- N %ZR
- D SILENT^%RSEL("ZTLOAD1","SRC")
- D STRIPCR^ZOSVGUX(%ZR("ZTLOAD1"))
- D SUCCEED^%ut
- QUIT
  ;
 TEMP ; @TEST getting temp directory
  N TMP S TMP=$$TEMP^%ZOSV()
@@ -253,13 +253,36 @@ NSLOOKUP ; @TEST Test DNS Utilities
  D CHKTF^%ut(%="")
  ;
  ; FORWARD DNS
+ ; dig doesn't return an IPV6 localhost address on Mac; don't know why.
+ N ISMAC S ISMAC=$ZV["Darwin"
  N IPV6 S IPV6=$$VERSION^XLFIPV
- I IPV6 D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"0000:0000:0000:0000:0000:0000:0000:0001") I 1
- E  D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"127.0.0.1")
+ I IPV6,'ISMAC D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"0000:0000:0000:0000:0000:0000:0000:0001") I 1
+ E  I 'ISMAC D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"127.0.0.1")
  D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","A"),"127.0.0.1")
- D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","AAAA"),"0000:0000:0000:0000:0000:0000:0000:0001")
+ I 'ISMAC D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","AAAA"),"0000:0000:0000:0000:0000:0000:0000:0001")
  QUIT
  ;
 IPV6 ; @TEST Test GT.M support for IPV6
  D CHKEQ^%ut($$VERSION^XLFIPV(),1)
+ QUIT
+ ;
+SSVNJOB ; @TEST Replacement for ^$JOB in XQ82
+ L +SSVNJOB
+ J SSVNJOB1:(IN="/dev/null":OUT="/dev/null":ERR="/dev/null")
+ N CHILDPID S CHILDPID=$ZJOB
+ L -SSVNJOB
+ H .01
+ L +SSVNJOB
+ L
+ D CHKTF^%ut($D(^TMP(CHILDPID)))
+ D ^XQ82
+ D CHKTF^%ut('$D(^TMP(CHILDPID)))
+ QUIT
+ ;
+SSVNJOB1 ; [Private] Helper for SSVNJOB
+ L +SSVNJOB
+ K ^TMP($J)
+ S ^TMP($J,"SAM")=1
+ S ^TMP($J,"CHRISTOPHER")=2
+ L -SSVNJOB
  QUIT
