@@ -101,12 +101,13 @@ DEAD(X1) ;Check if X1 is a PID and DEAD
  I XQOS="VMS",$E($$CNV^XLFUTL(X1,16),1,3)'=$E(HPID3,1,3) Q 0
  ;We should only come here
  ;is X1 a PID on this node and is PID active?..
+ I $ZV["GT.M" Q $ZGETJPI(X1,"ISPROCALIVE") ; OSEHRA/SMH - GT.M replacement for ^$J
  I $D(^$JOB(X1))=0 Q 1 ; Job is DEAD
  Q 0
  ;
 CHECK() ;Check that we have the right enviroment to do pass 2
  ;GTM must be on one big box.
- I XQVND["GT.M" Q 0
+ I XQVND["GT.M" Q 1 ; OSEHRA/SMH - GT.M allows you to check if a job exists.
  ;Are we on Cache, ^$JOB is supported.
  ;Get value of LOCAL TMP (.07) to see if ^TMP, ^UTILITY and ^XUTL("XQ" are local.
  I XQVND["OpenM" Q +$P($G(^XTV(8989.3,1,0)),"^",7) ;p554
