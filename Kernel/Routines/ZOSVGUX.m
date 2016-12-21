@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-20  2:23 PM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-20  5:52 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -241,12 +241,14 @@ DEVOPN ;List of Devices opened.  Linux only
  F  S %I=$O(%Y("D",%I)) Q:'%I  S Y=Y_%X_$P(%Y("D",%I)," "),%X=","
  Q
  ;
-RETURN(%COMMAND) ; [Public] execute a shell command & return the last line **
+RETURN(%COMMAND,JUSTSTATUS) ; [Public] execute a shell command 
+ ; - return the last line; or just the status of the command.
  ; %COMMAND is the string value of the Linux command
  N IO,LINE,TMP
  S IO=$IO
  O "COMMAND":(SHELL="/bin/sh":COMMAND=%COMMAND:READONLY)::"PIPE" U "COMMAND"
  F  R TMP:1 Q:$ZEO  S LINE=TMP
  U IO C "COMMAND"
+ I $G(JUSTSTATUS) Q $ZCLOSE
  Q $G(LINE)
  ;
