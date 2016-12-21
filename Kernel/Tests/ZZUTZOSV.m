@@ -1,4 +1,4 @@
-ZZUTZOSV ;KRM/CJE - ZOSV2 unit tests ;2016-12-20  2:38 PM; 3/14/14 3:53P
+ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-20  5:49 PM
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
@@ -266,11 +266,12 @@ IPV6 ; @TEST Test GT.M support for IPV6
  QUIT
  ;
 SSVNJOB ; @TEST Replacement for ^$JOB in XQ82
+ ; ZEXCEPT: SSVNJOB,SSVNJOB1,ERR,IN
  L +SSVNJOB
  J SSVNJOB1:(IN="/dev/null":OUT="/dev/null":ERR="/dev/null")
  N CHILDPID S CHILDPID=$ZJOB
  L -SSVNJOB
- H .01
+ H .01 ; This must be big enough to let your computer start the job
  L +SSVNJOB
  L
  D CHKTF^%ut($D(^TMP(CHILDPID)))
@@ -279,9 +280,196 @@ SSVNJOB ; @TEST Replacement for ^$JOB in XQ82
  QUIT
  ;
 SSVNJOB1 ; [Private] Helper for SSVNJOB
+ ; ZEXCEPT: SSVNJOB
  L +SSVNJOB
  K ^TMP($J)
  S ^TMP($J,"SAM")=1
  S ^TMP($J,"CHRISTOPHER")=2
  L -SSVNJOB
  QUIT
+ ;
+OPENH ; @TEST Read a Text File in w/ Handle
+ ; OPEN^%ZISH([handle][,path,]filename,mode[,max][,subtype]) 
+ N POP
+ K ^TMP($J)
+ D OPEN^%ZISH("FILE1","/usr/include/","stdio.h","R")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ D USE^%ZISUTL("FILE1")
+ F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
+ D CLOSE^%ZISH("FILE1")
+ D CHKTF^%ut(^TMP($J)>25)
+ D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
+ QUIT
+ ;
+OPENNOH ; @TEST Read a Text File w/o a Handle
+ N POP
+ K ^TMP($J)
+ D OPEN^%ZISH(,"/usr/include/","stdio.h","R")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
+ D CLOSE^%ZISH()
+ D CHKTF^%ut(^TMP($J)>25)
+ D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
+ QUIT
+ ;
+OPENPATH ; @TEST Read a Text File w/ Full Path (like ZISHONT)
+ N POP
+ K ^TMP($J)
+ D OPEN^%ZISH(,,"/usr/include/stdio.h","R")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
+ D CLOSE^%ZISH()
+ D CHKTF^%ut(^TMP($J)>25)
+ D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
+ QUIT
+ ;
+OPENBLOR ; @TEST Read a File as a binary device (FIXED WIDTH)
+ N POP
+ K ^TMP($J)
+ D OPEN^%ZISH(,"/usr/include/","stdio.h","RB")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
+ D CLOSE^%ZISH()
+ D CHKEQ^%ut($ZL(^TMP($J,5)),512,"Blocks are 512 bytes each")
+ D CHKEQ^%ut($ZL(^TMP($J,5)),$ZL(^TMP($J,6)),"Blocks should all be the same size")
+ QUIT
+ ;
+OPENBLOW ; @TEST Write a File as a binary device (Use Capri zip file in 316.18)
+ N POP
+ K ^TMP($J)
+ N SUB S SUB=$O(^DVB(396.18,1,3,0))
+ N FNNODE S FNNODE=^DVB(396.18,1,3,SUB,0)
+ N L S L=$P(FNNODE," ",2)
+ N FN S FN=$P(FNNODE," ",3)
+ D OPEN^%ZISH(,$$DEFDIR^%ZISH(),FN,"WB",61)
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ F  S SUB=$O(^DVB(396.18,1,3,SUB)) Q:'SUB  W ^(SUB,0)
+ D CLOSE^%ZISH()
+ D OPEN^%ZISH(,$$DEFDIR^%ZISH(),FN,"RB")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ N X R X:0
+ D CHKTF^%ut($L(X)=61,"record size isn't correct")
+ D CLOSE^%ZISH()
+ QUIT
+ ;
+OPENDF ; @TEST Open File from Default HFS Directory
+ ; Uses the file from the last test.
+ N POP
+ N SUB S SUB=$O(^DVB(396.18,1,3,0))
+ N FNNODE S FNNODE=^DVB(396.18,1,3,SUB,0)
+ N L S L=$P(FNNODE," ",2)
+ N FN S FN=$P(FNNODE," ",3)
+ D OPEN^%ZISH(,,FN,"RB",61)
+ D CHKTF^%ut(POP'=1)
+ D CLOSE^%ZISH()
+ QUIT
+ ;
+OPENSUB ; @TEST Open file with a Specific Subtype
+ ; ZEXCEPT: IOM,IOSL
+ N POP
+ K ^TMP($J)
+ D OPEN^%ZISH(,"/usr/include/","stdio.h","R",,"P-HFS/80/99999")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
+ D CHKTF^%ut(^TMP($J)>25)
+ D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
+ D CHKTF^%ut(IOM=80)
+ D CHKTF^%ut(IOSL=65500)
+ D CLOSE^%ZISH()
+ QUIT
+ ;
+OPENDLM ; @TEST Forget delimiter in Path
+ N POP
+ K ^TMP($J)
+ D OPEN^%ZISH(,"/usr/include","stdio.h","R")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
+ D CHKTF^%ut(^TMP($J)>25)
+ D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
+ D CLOSE^%ZISH()
+ QUIT
+ ;
+OPENAPP ; @TEST Open with appending
+ N POP
+ D OPEN^%ZISH(,,"test-for-sam.txt","W")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ W "TEST 1",!
+ D CLOSE^%ZISH
+ D OPEN^%ZISH(,,"test-for-sam.txt","WA")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ W "TEST 2",!
+ D CLOSE^%ZISH
+ D CHKTF^%ut($$RETURN^%ZOSV("wc -l "_$$DEFDIR^%ZISH()_"test-for-sam.vvdat | cut -d' ' -f1")=2)
+ QUIT
+ ;
+PWD ; @TEST Get Current Working Directory
+ D CHKTF^%ut($$PWD^%ZISH()=$ZD)
+ QUIT
+ ;
+DEFDIR ; @TEST Default Directory
+ N DEFDIR S DEFDIR=$$DEFDIR^%ZISH
+ D CHKTF^%ut(DEFDIR["/tmp/"!(DEFDIR["/shm/"),"1")
+ S DEFDIR=$$DEFDIR^%ZISH(".")
+ D CHKTF^%ut(DEFDIR=$ZD,"2")
+ S DEFDIR=$$DEFDIR^%ZISH("/usr/lib")
+ D CHKTF^%ut($E(DEFDIR,$L(DEFDIR))="/","3")
+ N OLDD S OLDD=$ZD
+ S $ZD="/usr/"
+ S DEFDIR=$$DEFDIR^%ZISH("./lib")
+ D CHKTF^%ut(DEFDIR="/usr/lib/","4")
+ S $ZD=OLDD
+ QUIT
+ ;
+LIST ; @TEST
+ QUIT
+ ;
+MV ; @TEST
+ QUIT
+ ;
+FTG ; @TEST
+ QUIT
+ ;
+GTF ; @TEST
+ QUIT
+ ;
+GATF ; @TEST
+ QUIT
+ ;
+DEL ; @TEST Delete files we created in the tests
+ I $$VERSION^%ZOSV(0)<6.1 QUIT  ; $ZCLOSE
+ ;
+ N DELARRAY
+ S DELARRAY("test-for-sam.txt")=""
+ ;
+ N SUB S SUB=$O(^DVB(396.18,1,3,0))
+ N FNNODE S FNNODE=^DVB(396.18,1,3,SUB,0)
+ N FN S FN=$P(FNNODE," ",3)
+ S DELARRAY(FN)=""
+ ;
+ N DIR S DIR=$$DEFDIR^%ZISH()
+ ;
+ N FULLPATH
+ S FULLPATH=DIR_"test-for-sam.txt"
+ N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ D CHKTF^%ut(%=0,1)
+ S FULLPATH=DIR_FN
+ N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ D CHKTF^%ut(%=0,2)
+ D DEL^%ZISH(DIR,$NA(DELARRAY))
+ S FULLPATH=DIR_"test-for-sam.txt"
+ N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ D CHKTF^%ut(%'=0,3)
+ S FULLPATH=DIR_FN
+ N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ D CHKTF^%ut(%'=0,4)
+ QUIT
+ ;
