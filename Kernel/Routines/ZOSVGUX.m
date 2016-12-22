@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-20  5:52 PM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-21  1:23 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -251,4 +251,9 @@ RETURN(%COMMAND,JUSTSTATUS) ; [Public] execute a shell command
  U IO C "COMMAND"
  I $G(JUSTSTATUS) Q $ZCLOSE
  Q $G(LINE)
+ ;
+CD(NEWDIR) ; [Public] Change Directory
+ S $ZD=NEWDIR
+ QUIT:$QUIT $ZD
+ QUIT
  ;
