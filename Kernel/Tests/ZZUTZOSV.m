@@ -1,4 +1,4 @@
-ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-20  5:49 PM
+ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-21  7:01 PM
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
@@ -408,7 +408,7 @@ OPENAPP ; @TEST Open with appending
  U IO
  W "TEST 2",!
  D CLOSE^%ZISH
- D CHKTF^%ut($$RETURN^%ZOSV("wc -l "_$$DEFDIR^%ZISH()_"test-for-sam.vvdat | cut -d' ' -f1")=2)
+ D CHKTF^%ut($$RETURN^%ZOSV("wc -l "_$$DEFDIR^%ZISH()_"test-for-sam.txt | cut -d' ' -f1")=2)
  QUIT
  ;
 PWD ; @TEST Get Current Working Directory
@@ -471,5 +471,55 @@ DEL ; @TEST Delete files we created in the tests
  S FULLPATH=DIR_FN
  N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
  D CHKTF^%ut(%'=0,4)
+ QUIT
+ ;
+BROKER ; @TEST
+ QUIT
+ ;
+SHA ; @TEST SHA-1 and SHA-256 in Hex and Base64
+ D CHKEQ^%ut($$SHAHASH^XUSHSH(160,"test"),"A94A8FE5CCB19BA61C4C0873D391E987982FBBD3")
+ D CHKEQ^%ut($$SHAHASH^XUSHSH(160,"test","H"),"A94A8FE5CCB19BA61C4C0873D391E987982FBBD3")
+ D CHKEQ^%ut($$SHAHASH^XUSHSH(160,"test","B"),"qUqP5cyxm6YcTAhz05Hph5gvu9M=")
+ D CHKEQ^%ut($$SHAHASH^XUSHSH(256,"test"),"9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08")
+ QUIT
+ ;
+BASE64 ; @TEST Base 64 Encode and Decode
+ D CHKEQ^%ut($$B64ENCD^XUSHSH("test"),"dGVzdA==")
+ D CHKEQ^%ut($$B64DECD^XUSHSH("dGVzdA=="),"test")
+ QUIT
+ ;
+RSAENC ; @TEST Test RSA Encryption
+ N SECRET S SECRET="Alice and Bob had Sex!"
+ ;
+ ; Create RSA certificate and private key w/ no password
+ N %CMD
+ S %CMD="openssl req -x509 -nodes -days 365 -sha256 -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -newkey rsa:2048 -keyout /tmp/mycert.key -out /tmp/mycert.pem"
+ N % S %=$$RETURN^%ZOSV(%CMD)
+ N CIPHERTEXT S CIPHERTEXT=$$RSAENCR^XUSHSH(SECRET,"/tmp/mycert.pem")
+ D CHKTF^%ut($ZL(CIPHERTEXT)>$ZL(SECRET))
+ N DECRYPTION S DECRYPTION=$$RSADECR^XUSHSH(CIPHERTEXT,"/tmp/mycert.key")
+ D CHKEQ^%ut(SECRET,DECRYPTION)
+ ;
+ ; Create RSA certificate and private key with a password
+ ; Apparently, no way to do all of this in a single line in openssl; have to do
+ ; it the traditional way: key, CSR, Cert.
+ N %CMD
+ S %CMD="openssl genrsa -aes128 -passout pass:monkey1234 -out /tmp/mycert.key 2048"
+ N % S %=$$RETURN^%ZOSV(%CMD)
+ S %CMD="openssl req -new -key /tmp/mycert.key -passin pass:monkey1234 -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -out /tmp/mycert.csr"
+ N % S %=$$RETURN^%ZOSV(%CMD)
+ S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
+ N % S %=$$RETURN^%ZOSV(%CMD)
+ N CIPHERTEXT S CIPHERTEXT=$$RSAENCR^XUSHSH(SECRET,"/tmp/mycert.pem")
+ D CHKTF^%ut($ZL(CIPHERTEXT)>$ZL(SECRET))
+ N DECRYPTION S DECRYPTION=$$RSADECR^XUSHSH(CIPHERTEXT,"/tmp/mycert.key","monkey1234")
+ D CHKEQ^%ut(SECRET,DECRYPTION)
+ QUIT
+ ;
+AESENC ; @TEST Test AES Encryption
+ N SECRET S SECRET="Alice and Bob had Sex!"
+ N X S X=$$AESENCR^XUSHSH(SECRET,"ABCDABCDABCDABCD","DCBADCBADCBADCBA")
+ N Y S Y=$$AESDECR^XUSHSH(X,"ABCDABCDABCDABCD","DCBADCBADCBADCBA")
+ D CHKEQ^%ut(SECRET,Y)
  QUIT
  ;
