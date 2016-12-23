@@ -1,4 +1,4 @@
-%ZISTCPS ;ISF/RWF - DEVICE HANDLER TCP/IP SERVER CALLS ;2015-12-23  4:01 PM
+%ZISTCPS ;ISF/RWF - DEVICE HANDLER TCP/IP SERVER CALLS ;2016-12-22  12:39 PM
  ;;8.0;KERNEL;**78,118,127,225,275,388**;Jul 10, 1995
  Q
  ;
@@ -63,7 +63,7 @@ LGTM ;GT.M multi-threaded server
  K ^TMP("ZISTCP",$J)
  ;
  I +$P($ZV,"V",2)<6.1 D  QUIT  ; Not supported under 6.1 of GT.M
- . D LOG("Multi-threaded listner doesn't work in GT.M < 6.1")
+ . D LOG("Multi-threaded listener doesn't work in GT.M < 6.1")
  ;
  S NIO="SCK$"_SOCK
  D LOG("Open for Listen "_NIO)
