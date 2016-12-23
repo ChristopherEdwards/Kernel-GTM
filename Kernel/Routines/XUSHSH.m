@@ -1,4 +1,4 @@
-XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2016-12-21  6:50 PM
+XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2016-12-22  12:32 PM
  ;;8.0;KERNEL;**655,659**;Jul 10, 1995;Build 22
  ;Per VA Directive 6402, this routine should not be modified.
  ;
@@ -52,7 +52,7 @@ SHAHASH(N,X,FLAG) ;One-Way Hash Utility, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
  U "COMM" W X S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
  F  R Y:0 Q:$L(Y)  Q:$ZEOF
- C "COMM"
+ U IO C "COMM"
  S Y=$P(Y," ") ; shasum appends '  *-' to output.
  N UPY S UPY=$$UP^XLFSTR(Y) ; uppercase to be in M friendly mode
  I $G(FLAG)'="B" Q UPY      ; we are done if we don't need base64
@@ -61,7 +61,7 @@ SHAHASH(N,X,FLAG) ;One-Way Hash Utility, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
  U "COMM" W Y S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
  N B F  R B:0 Q:$L(B)  Q:$ZEOF
- C "COMM"
+ U IO C "COMM"
  Q B
  ;
 B64ENCD(X) ;Base 64 Encode, IA #6189
@@ -70,7 +70,7 @@ B64ENCD(X) ;Base 64 Encode, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
  U "COMM" W X S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
  F  R Y:0 Q:$L(Y)  Q:$ZEOF
- C "COMM"
+ U IO C "COMM"
  Q Y
  ;
 B64DECD(X) ;Base 64 Decode, IA #6189
@@ -79,7 +79,7 @@ B64DECD(X) ;Base 64 Decode, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
  U "COMM" W X S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
  F  R Y:0 Q:$L(Y)  Q:$ZEOF
- C "COMM"
+ U IO C "COMM"
  Q Y
  ;
 RSAENCR(TEXT,CERT,CAFILE,CRLFILE,ENC) ;RSA Encrypt, IA #6189
@@ -108,10 +108,9 @@ RSAENCR(TEXT,CERT,CAFILE,CRLFILE,ENC) ;RSA Encrypt, IA #6189
  N %CMD S %CMD="openssl pkeyutl -encrypt -certin -inkey "_CERT
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe" ; THESE PARAMETERS ARE IMPORTANT! I kept fiddling until I got them.
  U "COMM" W TEXT S $X=0 W /EOF
- U "COMM"
  N OUT
  F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
- C "COMM"
+ U IO C "COMM"
  Q OUT
  ;
 RSADECR(TEXT,KEY,PWD,ENC) ;RSA Decrypt, IA #6189
@@ -131,8 +130,8 @@ RSADECR(TEXT,KEY,PWD,ENC) ;RSA Decrypt, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
  N OUT
- F  R Y:0 S OUT=$G(OUT)_Y Q:$ZEOF
- C "COMM"
+ F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
+ U IO C "COMM"
  Q OUT
  ;
 AESENCR(TEXT,KEY,IV) ;AES Encrypt, IA #6189
@@ -143,20 +142,18 @@ AESENCR(TEXT,KEY,IV) ;AES Encrypt, IA #6189
  N %CMD S %CMD="openssl enc -e -aes-256-cbc -K "_KEY_" -iv "_IV
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF
- U "COMM"
  N OUT
  F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
- C "COMM"
+ U IO C "COMM"
  Q OUT
  ;
 AESDECR(TEXT,KEY,IV) ;AES Decrypt, IA #6189
  N %CMD S %CMD="openssl enc -d -aes-256-cbc -K "_KEY_" -iv "_IV
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF
- U "COMM"
  N OUT
  F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
- C "COMM"
+ U IO C "COMM"
  Q OUT
  ;
 Z ;;
