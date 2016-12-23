@@ -1,8 +1,8 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-21  1:23 PM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-22  12:22 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
- I '$G(^XUTL("XUSYS","CNT"))!($G(^XUTL("XUSYS","CNT","SEC"))>($$SEC^XLFDT($H)+3600)) D
+ I ($G(^XUTL("XUSYS","CNT"))<1)!($G(^XUTL("XUSYS","CNT","SEC"))>($$SEC^XLFDT($H)+3600)) D
  . I $$UP^XLFSTR($ZV)["LINUX" D
  .. N I,IO,LINE
  .. S IO=$IO
@@ -73,7 +73,7 @@ ZRO1ST(DIRS) ; $$ Get first usable routine directory
  ;
 TEMP() ; Return path to temp directory
  ;N %TEMP S %TEMP=$P($$RTNDIR," "),%TEMP=$P(%TEMP,"/",1,$L(%TEMP,"/")-2)_"/t/"
- Q $G(^%ZOSF("TMP"),$G(^XTV(8989.3,1,"DEV"),"/tmp/"))
+ Q $G(^%ZOSF("TMP"),$P($G(^XTV(8989.3,1,"DEV"),"/tmp/"),U))
  ;
 PASSALL ;
  U $I:(NOESCAPE:NOTERMINATOR:PASTHRU) Q
@@ -251,9 +251,3 @@ RETURN(%COMMAND,JUSTSTATUS) ; [Public] execute a shell command
  U IO C "COMMAND"
  I $G(JUSTSTATUS) Q $ZCLOSE
  Q $G(LINE)
- ;
-CD(NEWDIR) ; [Public] Change Directory
- S $ZD=NEWDIR
- QUIT:$QUIT $ZD
- QUIT
- ;
