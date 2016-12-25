@@ -142,7 +142,7 @@ UNIX	;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  S %I=$I,U="^"
  N CMD
  I $ZV["Linux" S CMD="ps eo pid,tty,stat,time,cmd -C mumps"
- I $ZV["Darwin" S CMD="ps xeo pid,tty,stat,time,comm|grep mumps|grep -v grep"
+ I $ZV["Darwin" S CMD="ps xeo pid,tty,stat,time,args|grep mumps|grep -v grep"
  O "ps":(SHELL="/bin/sh":COMMAND=CMD:READONLY)::"PIPE" U "ps"
  F  R %TEXT Q:$ZEO  D
  . S %LINE=$$VPE(%TEXT," ",U) ; parse each line of the ps output
@@ -165,7 +165,8 @@ JOBSET	;Get data from a Linux job
  S CTIME=$P(%LINE,U,4) ;cpu time
  S JTYPE=$P(%LINE,U,6),ACCESS(JTYPE)=JTYPE
  ZSY:'(%SIGUSR1&$ZSIGPROC(%J,%SIGUSR1)) "$gtm_dist/mupip intrpt "_%J ; uses GT.M short circuit of Boolean expr
- S UNAME=$G(^XUTL("XUSYS",%J,"NM"))
+ I $D(^XUTL("XUSYS",%J)) S UNAME=$G(^XUTL("XUSYS",%J,"NM"))
+ E  S UNAME="unknown"
  S RTN="" ; Routine, get at display time
  S SI=$S(MODE=0:PID,MODE=1:CTIME,1:PID)
  I IMAGE D
