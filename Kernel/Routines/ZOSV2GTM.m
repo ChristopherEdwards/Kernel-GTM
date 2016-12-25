@@ -1,4 +1,4 @@
-%ZOSV2 ;ISF/RWF - More GT.M support routines ;10/18/06  14:29
+%ZOSV2 ;ISF/RWF,FIS/KSB,VEN/SMH - More GT.M support routines ;12/25/2016
  ;;8.0;KERNEL;**275,425**;Jul 10, 1995;Build 18
  Q
  ;SAVE: DIE open array reference.
@@ -7,7 +7,7 @@ SAVE(RN) ;Save a routine
  N %,%F,%I,%N,SP,$ETRAP
  S $ETRAP="S $ECODE="""" Q"
  S %I=$I,SP=" ",%F=$$RTNDIR^%ZOSV()_$TR(RN,"%","_")_".m"
- O %F:(NEWVERSION:NOREADONLY:NOWRAP:STREAM) U %F
+ O %F:(NEWVERSION:NOWRAP:STREAM) U %F
  F  S XCN=$O(@(DIE_XCN_")")) Q:XCN'>0  S %=@(DIE_XCN_",0)") Q:$E(%,1)="$"  I $E(%)'=";" W %,!
  C %F ;S %N=$$NULL
  ZLINK RN
@@ -20,20 +20,44 @@ NULL() ;Open and use null to hide talking.  Return open name
  O %N U %N
  Q %N
  ;
-DEL(RN) ;Delete a routine file, both source and object; doesn't work for object files in shared libraries, or for OpenVMS
- N %F,%P,%ZR,$ETRAP
- S $ETRAP="S $ECODE="""" Q",%F=$TR($E(RN,1),"%","_")_$E(RN,2,$L(RN))
- D SILENT^%RSEL(RN) I %ZR S %P=%ZR(RN)_%F_".m" O %P C %P:DELETE
- D SILENT^%RSEL(RN,"OBJ") I %ZR S %P=%ZR(RN)_%F_".o" O %P C %P:DELETE
- Q
+DEL(RN) ; Delete Routine, VEN/SMH
+ ; Input: Routine Name by Value
+ ; Output: None
+DELLOOP ; Loop entry point
+ N %ZR ; Output from GT.M %RSEL
+ N %S,%O ; Source directory, object directory 
+ ; 
+ ; NB: For future works, %RSEL support * syntax to get a bunch of routines
+ D SILENT^%RSEL(RN,"SRC") S %S=$G(%ZR(RN)) ; Source Directory
+ D SILENT^%RSEL(RN,"OBJ") S %O=$G(%ZR(RN)) ; Object Directory
+ ;
+ I '$L(%S)&('$L(%O)) QUIT
+ ;
+ S RN=$TR(RN,"%","_") ; change % to _ in routine name
+ ;
+ N $ET,$ES S $ET="Q:$ES  S $EC="""" Q" ; In case somebody else deletes this; we don't crash
+ ;
+ I $L(%S) D  ; If source routine present?
+ . O %S_RN_".m":(newversion):0  ; Write out a new routine that's completely empty.
+ . E  Q
+ . ZLINK RN  ; Tell this process that that's the new routine. Other proceses that have the object linked be notified using the RELINK_CTL file.
+ . C %S_RN_".m":(delete)  ; now delete
+ ;
+ I $L(%O) D  ; If object code present?
+ . O %O_RN_".o":(readonly):0
+ . E  Q
+ . C %O_RN_".o":(delete)
+ G DELLOOP
+ ;
+ ;
  ;LOAD: DIF open array to receive the routine lines.
- ;      XCNP The starting index -1.
-LOAD(RN) ;Load a routine
+ ;      XCNP The starting index -1 (cuz uses $INCREMENT).
+LOAD(RN) ;Load a routine using $TEXT
  N %
  S %N=0 F  S %=$T(+$I(%N)^@RN) Q:$L(%)=0  S @(DIF_$I(XCNP)_",0)")=%
  Q
  ;
-LOAD2(RN) ;Load a routine
+LOAD2(RN) ;Load a routine from the Filesystem
  N %,%1,%F,%N,$ETRAP
  S %I=$I,%F=$$RTNDIR^%ZOSV()_$TR(RN,"%","_")_".m"
  O %F:(READONLY):1 Q:'$T  U %F
