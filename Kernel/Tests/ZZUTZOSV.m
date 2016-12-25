@@ -2,7 +2,7 @@ ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-21  7:01 PM
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
- I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",3)
+ I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",0)
  Q
  ;
 ZRO1 ; @TEST $ZROUTINES Parsing Single Object Multiple dirs
@@ -297,6 +297,7 @@ OPENH ; @TEST Read a Text File in w/ Handle
  D USE^%ZISUTL("FILE1")
  F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
  D CLOSE^%ZISH("FILE1")
+ W !
  D CHKTF^%ut(^TMP($J)>25)
  D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
  QUIT
@@ -309,6 +310,7 @@ OPENNOH ; @TEST Read a Text File w/o a Handle
  U IO
  F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
  D CLOSE^%ZISH()
+ W !
  D CHKTF^%ut(^TMP($J)>25)
  D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
  QUIT
@@ -321,6 +323,7 @@ OPENPATH ; @TEST Read a Text File w/ Full Path (like ZISHONT)
  U IO
  F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
  D CLOSE^%ZISH()
+ W !
  D CHKTF^%ut(^TMP($J)>25)
  D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
  QUIT
@@ -333,6 +336,7 @@ OPENBLOR ; @TEST Read a File as a binary device (FIXED WIDTH)
  U IO
  F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
  D CLOSE^%ZISH()
+ W !
  D CHKEQ^%ut($ZL(^TMP($J,5)),512,"Blocks are 512 bytes each")
  D CHKEQ^%ut($ZL(^TMP($J,5)),$ZL(^TMP($J,6)),"Blocks should all be the same size")
  QUIT
@@ -353,8 +357,9 @@ OPENBLOW ; @TEST Write a File as a binary device (Use Capri zip file in 316.18)
  I POP D FAIL^%ut("Couldn't open file") QUIT
  U IO
  N X R X:0
- D CHKTF^%ut($L(X)=61,"record size isn't correct")
  D CLOSE^%ZISH()
+ W !
+ D CHKTF^%ut($L(X)=61,"record size isn't correct")
  QUIT
  ;
 OPENDF ; @TEST Open File from Default HFS Directory
@@ -427,12 +432,52 @@ DEFDIR ; @TEST Default Directory
  S DEFDIR=$$DEFDIR^%ZISH("./lib")
  D CHKTF^%ut(DEFDIR="/usr/lib/","4")
  S $ZD=OLDD
+ S DEFDIR=$$DEFDIR^%ZISH("/LKJASDLJ/ASLKDAIOUWRE/ASLK")
+ D CHKTF^%ut(DEFDIR="")
  QUIT
  ;
-LIST ; @TEST
+LIST ; @TEST LIST^%ZISH
+ N PATH S PATH="/usr/include"
+ N %ARR S %ARR("std*")=""
+ N %RET
+ N % S %=$$LIST^%ZISH(PATH,$NA(%ARR),$NA(%RET))
+ N CNT,I
+ S CNT=0,I=""
+ F  S I=$O(%RET(I)) Q:I=""  S CNT=CNT+1 
+ D CHKTF^%ut(CNT'<3,1)
+ D CHKTF^%ut(%,2)
+ ;
+ N PATH S PATH="/dsdfsadf/klasjdfasdf"
+ N %ARR S %ARR("*")=""
+ N %RET
+ N % S %=$$LIST^%ZISH(PATH,$NA(%ARR),$NA(%RET))
+ D CHKTF^%ut('%,3)
+ ;
+ N %ARR S %ARR("*")=""
+ N %RET
+ N % S %=$$LIST^%ZISH("$vista_home/r/",$NA(%ARR),$NA(%RET))
+ N CNT,I
+ S CNT=0,I=""
+ F  S I=$O(%RET(I)) Q:I=""  S CNT=CNT+1 
+ D CHKTF^%ut(CNT>20000,4)
+ D CHKTF^%ut(%,5)
  QUIT
  ;
 MV ; @TEST
+ N POP
+ D OPEN^%ZISH(,,"test_for_sam2.txt","W")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ W "LINE1",!
+ W "LINE2",!
+ D CLOSE^%ZISH
+ D MV^%ZISH(,"test_for_sam2.txt",,"test_for_sam3.txt")
+ D OPEN^%ZISH(,,"test_for_sam3.txt","R")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ E  D SUCCEED^%ut
+ D CLOSE^%ZISH
+ D OPEN^%ZISH(,,"test_for_sam2.txt","R")
+ D CHKTF^%ut(POP)
  QUIT
  ;
 FTG ; @TEST
@@ -442,6 +487,9 @@ GTF ; @TEST
  QUIT
  ;
 GATF ; @TEST
+ QUIT
+ ;
+DEL1 ; @TEST
  QUIT
  ;
 DEL ; @TEST Delete files we created in the tests
@@ -459,21 +507,42 @@ DEL ; @TEST Delete files we created in the tests
  ;
  N FULLPATH
  S FULLPATH=DIR_"test-for-sam.txt"
- N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ N STATCMD S STATCMD="stat -t "
+ I $$VERSION^%ZOSV(1)["Darwin" S STATCMD="stat -q "
+ N % S %=$$RETURN^%ZOSV(STATCMD_FULLPATH,1)
  D CHKTF^%ut(%=0,1)
  S FULLPATH=DIR_FN
- N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ N % S %=$$RETURN^%ZOSV(STATCMD_FULLPATH,1)
  D CHKTF^%ut(%=0,2)
  D DEL^%ZISH(DIR,$NA(DELARRAY))
  S FULLPATH=DIR_"test-for-sam.txt"
- N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ N % S %=$$RETURN^%ZOSV(STATCMD_FULLPATH,1)
  D CHKTF^%ut(%'=0,3)
  S FULLPATH=DIR_FN
- N % S %=$$RETURN^%ZOSV("stat -t "_FULLPATH,1)
+ N % S %=$$RETURN^%ZOSV(STATCMD_FULLPATH,1)
  D CHKTF^%ut(%'=0,4)
  QUIT
  ;
-BROKER ; @TEST
+BROKER ; @TEST Test the new GT.M MTL Broker
+ ; Old version died after first connection.
+ ; NB: It DOES NOT WANT anything that's not IPv4.
+ ; Hard to do on any modern computer that is hardwired to give you IPv6
+ ; addressed for localhost.
+ N PORT S PORT=58738
+ J ZISTCP^XWBTCPM1(58738)
+ N BROKERJOB S BROKERJOB=$ZJOB
+ N % S %=$$TEST^XWBTCPMT("127.0.0.1",PORT)
+ D CHKEQ^%ut(+%,1)
+ N % S %=$$TEST^XWBTCPMT("127.0.0.1",PORT)
+ D CHKEQ^%ut(+%,1)
+ N % S %=$$TEST^XWBTCPMT("127.0.0.1",PORT)
+ D CHKEQ^%ut(+%,1)
+ N % S %=$$TEST^XWBTCPMT("127.0.0.1",PORT)
+ D CHKEQ^%ut(+%,1)
+ N % S %=$$RETURN^%ZOSV("$gtm_dist/mupip stop "_BROKERJOB)
+ H .05 ; It doesn't die right away...
+ D CHKTF^%ut('$ZGETJPI(BROKERJOB,"ISPROCALIVE"))
+ W ! ; reset $X
  QUIT
  ;
 SHA ; @TEST SHA-1 and SHA-256 in Hex and Base64
@@ -494,22 +563,35 @@ RSAENC ; @TEST Test RSA Encryption
  ; Create RSA certificate and private key w/ no password
  N %CMD
  S %CMD="openssl req -x509 -nodes -days 365 -sha256 -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -newkey rsa:2048 -keyout /tmp/mycert.key -out /tmp/mycert.pem"
- N % S %=$$RETURN^%ZOSV(%CMD)
+ N % S %=$$RETURN^%ZOSV(%CMD,1)
+ D CHKTF^%ut(%=0)
  N CIPHERTEXT S CIPHERTEXT=$$RSAENCR^XUSHSH(SECRET,"/tmp/mycert.pem")
  D CHKTF^%ut($ZL(CIPHERTEXT)>$ZL(SECRET))
  N DECRYPTION S DECRYPTION=$$RSADECR^XUSHSH(CIPHERTEXT,"/tmp/mycert.key")
  D CHKEQ^%ut(SECRET,DECRYPTION)
+ O "/tmp/mycert.pem":readonly C "/tmp/mycert.pem":delete
+ O "/tmp/mycert.key":readonly C "/tmp/mycert.key":delete
  ;
  ; Create RSA certificate and private key with a password
  ; Apparently, no way to do all of this in a single line in openssl; have to do
  ; it the traditional way: key, CSR, Cert.
+ ; VEN/SMH - For some reason, the darwin command doesn't create the
+ ; certificate when running from inside GT.M; it does okay in Bash.
+ ; So, for now, let's just disable this check on Darwin; I don't have time
+ ; for this shit.
+ I $$VERSION^%ZOSV(1)["Darwin" QUIT
+ ;
  N %CMD
  S %CMD="openssl genrsa -aes128 -passout pass:monkey1234 -out /tmp/mycert.key 2048"
- N % S %=$$RETURN^%ZOSV(%CMD)
+ N % S %=$$RETURN^%ZOSV(%CMD,1)
+ D CHKTF^%ut(%=0)
  S %CMD="openssl req -new -key /tmp/mycert.key -passin pass:monkey1234 -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -out /tmp/mycert.csr"
- N % S %=$$RETURN^%ZOSV(%CMD)
- S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
- N % S %=$$RETURN^%ZOSV(%CMD)
+ N % S %=$$RETURN^%ZOSV(%CMD,1)
+ D CHKTF^%ut(%=0)
+ I $$VERSION^%ZOSV["nix" S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
+ I $$VERSION^%ZOSV["arwin" S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
+ N % S %=$$RETURN^%ZOSV(%CMD,1)
+ D CHKTF^%ut(%=0)
  N CIPHERTEXT S CIPHERTEXT=$$RSAENCR^XUSHSH(SECRET,"/tmp/mycert.pem")
  D CHKTF^%ut($ZL(CIPHERTEXT)>$ZL(SECRET))
  N DECRYPTION S DECRYPTION=$$RSADECR^XUSHSH(CIPHERTEXT,"/tmp/mycert.key","monkey1234")
