@@ -1,4 +1,4 @@
-ZSY	;ISF/RWF - GT.M/VA system status display ;8/15/07  10:39
+ZSY	;ISF/RWF,VEN/SMH - GT.M/VA system status display ;8/15/07  10:39
  ;;8.0;KERNEL;**349**;Jul 10, 1995;Build 2
  ;GT.M/VA %SY utility - status display
  ;From the top just show by PID
@@ -20,16 +20,10 @@ IMAGE	N IMAGE,MODE
 WORK	;Main driver, Will release lock
  N NOPRIV,LOCK,PID,ACCESS,USERS,CTIME,GROUP,JTYPE,LTIME,MEMBER,PROCID
  N TNAME,UNAME,INAME,I,SORT,OLDPRIV,TAB
- N $ES,$ET,STATE,%PS,RTN,%OS,RETVAL,%SIGUSR1,%T,SYSNAME,OLDINT,DONE
+ N $ES,$ET,STATE,%PS,RTN,%OS,RETVAL,%T,SYSNAME,OLDINT,DONE
  ;
  ;Save $ZINTERRUPT, set new one
  S OLDINT=$ZINTERRUPT,$ZINTERRUPT="I $$JOBEXAM^ZU($ZPOSITION) S DONE=1"
- ;
- ; What is SIGUSR1?
- I $ztrnlnm("GTMSC_gtmposix") S RETVAL=$&gtmposix.signalval("SIGUSR1",.%SIGUSR1) ; nonzero RETVAL is error
- E  D
- . I $ZV["Darwin" S %SIGUSR1=30
- . E  S %SIGUSR1=10
  ;
  ;Clear old data
  S ^XUTL("XUSYS","COMMAND")="Status"
@@ -40,7 +34,7 @@ WORK	;Main driver, Will release lock
  U $P:CTRAP=$C(3)
  ;
  ;Go get the data
- D UNIX ; OSEHRA/SMH - Cygwin may be different
+ D UNIX ; OSEHRA/SMH - Cygwin may be different, Now we support Linux and Mac
  ;
  ;Now show the results
  I USERS D
@@ -78,14 +72,20 @@ USHOW	;Display job info, sorted by pid
  S SI="",EXIT=0
  F  S SI=$ORDER(SORT(SI)) Q:SI=""!EXIT  F I=1:1:SORT(SI) D  Q:EXIT
  . S X=SORT(SI,I)
- . S TNAME=$P(X,"~",4),PROCID=$P(X,"~",1)
+ . S TNAME=$P(X,"~",4),PROCID=$P(X,"~",1) ; TNAME is Terminal Name, i.e. the device.
  . S JTYPE=$P(X,"~",5),CTIME=$P(X,"~",6)
  . S LTIME=$P(X,"~",7),PS=$P(X,"~",3)
  . S PID=$P(X,"~",8),UNAME=$P(X,"~",2)
  . S RTN=$G(^XUTL("XUSYS",PID,"INTERRUPT"))
+ . I $G(^XUTL("XUSYS",PID,"ZMODE"))="OTHER" S TNAME="BG JOB"
  . W !,PROCID,?TAB(1),UNAME,?TAB(2),$G(STATE(PS),PS),?TAB(3),TNAME,?TAB(4),RTN,?TAB(5),ACCESS(JTYPE),?TAB(6),$J(CTIME,6)
  . K DEV
- . F DI=1:1 Q:'$D(^XUTL("XUSYS",PID,"JE","D",DI))  S X=^(DI),X=$P(X,":")_":" I $TR(X,"_")'=TNAME S DEV(DI)=X
+ . F DI=1:1 Q:'$D(^XUTL("XUSYS",PID,"JE","D",DI))  D
+ .. S X=^(DI),X=$P(X,":")_":" ; VEN/SMH - No clue what that does.
+ .. I X["CLOSED" QUIT  ; Don't print closed devices
+ .. I PID=$J,$E(X,1,2)="ps" QUIT  ; Don't print our ps device
+ .. I $E(X)=0 QUIT  ; Don't print default principal devices
+ .. I X'[TNAME S DEV(DI)=X
  . S DI=0 F  S DI=$O(DEV(DI)) Q:DI'>0  W !,?TAB(3),$E(DEV(DI),1,79-$X)
  Q
 ISHOW	;Show process sorted by IMAGE
@@ -95,11 +95,12 @@ ISHOW	;Show process sorted by IMAGE
  . W !,"IMAGE  : ",INAME S SI=""
  . F  S SI=$ORDER(SORT(INAME,SI)) Q:SI=""!EXIT  F I=1:1:SORT(INAME,SI) D  Q:EXIT
  . . S X=SORT(INAME,SI,I)
- . . S TNAME=$P(X,"~",4),PROCID=$P(X,"~",1)
+ . . S TNAME=$P(X,"~",4),PROCID=$P(X,"~",1) ; TNAME is Terminal Name, i.e. the device.
  . . S PS=$P(X,"~",3),RTN=$P(X,"~",8)
  . . S JTYPE=$P(X,"~",5),CTIME=$P(X,"~",6)
  . . S LTIME=$P(X,"~",7),UNAME=$P(X,"~",2)
  . . S RTN=$G(^XUTL("XUSYS",RTN,"INTERRUPT"))
+ . . I $G(^XUTL("XUSYS",PROCID,"ZMODE"))="OTHER" S TNAME="BG JOB"
  . . W !,PROCID,?TAB(1),UNAME,?TAB(2),$G(STATE(PS),PS),?TAB(3),TNAME,?TAB(4),RTN,?TAB(5),ACCESS(JTYPE),?TAB(6),CTIME
  . W !
  Q
@@ -136,19 +137,20 @@ ASK()	;Ask sort item
  Q RES
  ;
 UNIX	;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
- ;S $ZT="ZG "_$ZL_":UERR^ZSY"
  N %LINE,%TEXT,%I,U,%J,STATE,$ET,$ES
  S $ET="D UERR^ZSY"
  S %I=$I,U="^"
- N CMD
- I $ZV["Linux" S CMD="ps eo pid,tty,stat,time,cmd -C mumps"
- I $ZV["Darwin" S CMD="ps xeo pid,tty,stat,time,args|grep mumps|grep -v grep"
- O "ps":(SHELL="/bin/sh":COMMAND=CMD:READONLY)::"PIPE" U "ps"
- F  R %TEXT Q:$ZEO  D
- . S %LINE=$$VPE(%TEXT," ",U) ; parse each line of the ps output
- . Q:$P(%LINE,U)="PID"  ; header line
- . D JOBSET
- U %I C "ps"
+ n procs
+ D UNIXLSOF(.procs)
+ n i f i=1:1 q:'$d(procs(i))  D
+ . I $ZV["Linux" S CMD="ps o pid,tty,stat,time,cmd -p"_procs(i)
+ . I $ZV["Darwin" S CMD="ps o pid,tty,stat,time,args -p"_procs(i)
+ . O "ps":(SHELL="/bin/sh":COMMAND=CMD:READONLY)::"PIPE" U "ps"
+ . F  R %TEXT Q:$ZEO  D
+ .. S %LINE=$$VPE(%TEXT," ",U) ; parse each line of the ps output
+ .. Q:$P(%LINE,U)="PID"  ; header line
+ .. D JOBSET
+ . U %I C "ps"
  Q
  ;
 UERR	;Linux Error
@@ -164,7 +166,7 @@ JOBSET	;Get data from a Linux job
  S PS=$S(PS="D":"lef",PS="R":"com",PS="S":"hib",1:PS)
  S CTIME=$P(%LINE,U,4) ;cpu time
  S JTYPE=$P(%LINE,U,6),ACCESS(JTYPE)=JTYPE
- ZSY:'(%SIGUSR1&$ZSIGPROC(%J,%SIGUSR1)) "$gtm_dist/mupip intrpt "_%J ; uses GT.M short circuit of Boolean expr
+ D INTRPT(%J)
  I $D(^XUTL("XUSYS",%J)) S UNAME=$G(^XUTL("XUSYS",%J,"NM"))
  E  S UNAME="unknown"
  S RTN="" ; Routine, get at display time
@@ -192,8 +194,37 @@ VPE(%OLDSTR,%OLDDEL,%NEWDEL) ; $PIECE extract based on variable length delimiter
  . F  Q:%OLDDEL'=$E(%OLDSTR,1,%LEN)  S $E(%OLDSTR,1,%LEN)=""
  Q %NEWSTR
  ;
-INTRPT	;List jobs that set INTRUPT.
- N J
- S J=0
- F  S J=$O(^XUTL("XUSYS",J)) Q:J'>0  S X=$G(^XUTL("XUSYS",J,"INTERRUPT")) I $L(X) W !,J,?10,X
- Q
+ ; Sam's entry points
+UNIXLSOF(procs) ; [Public] - Get all processes accessing THIS database (only!)
+ ; (return) .procs(n)=unix process number
+ n %cmd s %cmd="lsof -t "_$view("gvfile","default")
+ n oldio s oldio=$io
+ o "lsof":(shell="/bin/bash":command=%cmd)::"pipe"
+ u "lsof"
+ n i f i=1:1 q:$zeof  r procs(i):1  i procs(i)="" k procs(i)
+ u oldio c "lsof"
+ quit
+ ;
+INTRPT(%J) ; [Public] Send mupip interrupt (currently SIGUSR1) using $gtm_dist/mupip
+ N %CMD S %CMD="$gtm_dist/mupip intrpt "_%J
+ n oldio s oldio=$io
+ o "intrpt":(shell="/bin/sh":command=%CMD)::"pipe" u "intrpt",oldio c "intrpt"
+ QUIT
+ ;
+HALTALL ; [Public] Gracefully halt all jobs accessing current database
+ ; Calls ^XUSCLEAN then HALT^ZU
+ ;Clear old data
+ S ^XUTL("XUSYS","COMMAND")="Status"
+ N I F I=0:0 S I=$O(^XUTL("XUSYS",I)) Q:'I  K ^XUTL("XUSYS",I,"JE"),^("INTERUPT")
+ ;
+ ; Get jobs accessing this database
+ n procs d UNIXLSOF(.procs)
+ ;
+ ; Tell them to stop
+ f i=1:1 q:'$d(procs(i))  s ^XUTL("XUSYS",procs(i),"CMD")="HALT"
+ K ^XUTL("XUSYS",$J,"CMD")  ; but not us
+ ;
+ ; Sayonara
+ N J F J=0:0 S J=$O(^XUTL("XUSYS",J)) Q:'J  D INTRPT(J)
+ quit
+ ;
