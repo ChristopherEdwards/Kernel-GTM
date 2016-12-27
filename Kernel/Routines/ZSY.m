@@ -1,4 +1,4 @@
-ZSY	;ISF/RWF,VEN/SMH - GT.M/VA system status display ;8/15/07  10:39
+ZSY	;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2016-12-26  5:45 PM
  ;;8.0;KERNEL;**349**;Jul 10, 1995;Build 2
  ;GT.M/VA %SY utility - status display
  ;From the top just show by PID
@@ -105,29 +105,11 @@ ISHOW	;Show process sorted by IMAGE
  . W !
  Q
  ;
-WAIT	;Page break
- N Y
- S Y=0 W !,"Press Return to continue '^' to stop: " R Y:300
- I $E(Y)="^" S EXIT=1
- E  D HEADER
- Q
- ;
 DATETIME(HOROLOG)	;
  Q $ZDATE(HOROLOG,"DD-MON-YY 24:60:SS","Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec")
  ;
-CPUTIME(S)	;
- N T,S,M,H,D
- S T=S#100,S=S\100 S:$L(T)=1 T="0"_T
- S S=S#60,S=S\60 S:$L(S)=1 S="0"_S
- S M=S#60,S=S\60 S:$L(M)=1 M="0"_M
- S H=S#24,D=S\24 S:$L(H)=1 H="0"_H
- Q D_" "_H_":"_M_":"_S_"."_T
- ;
-BLINDPID	;
- N ZE S ZE=$ZS,$EC=""
- I ZE["NOPRIV" S NOPRIV=NOPRIV+1
- Q
 ASK()	;Ask sort item
+ I $D(%utAnswer) Q %utAnswer
  N RES,X,GROUP
  S RES=0,GROUP=2
  W !,"1 pid",!,"2 cpu time",!,"3 IMAGE/pid",!,"4 IMAGE/cpu"
@@ -159,7 +141,7 @@ UERR	;Linux Error
  Q  ;halt
  ;
 JOBSET	;Get data from a Linux job
- S (IMAGE,INAME,UNAME,PS,TNAME,JTYPE,CTIME,LTIME,RTN)=""
+ S (INAME,UNAME,PS,TNAME,JTYPE,CTIME,LTIME,RTN)=""
  S (%J,PID,PROCID)=$P(%LINE,U)
  S TNAME=$P(%LINE,U,2) S:TNAME="?" TNAME="" ; TTY, ? if none
  S PS=$P(%LINE,U,3) ; process STATE
@@ -203,7 +185,7 @@ UNIXLSOF(procs) ; [Public] - Get all processes accessing THIS database (only!)
  u "lsof"
  n i f i=1:1 q:$zeof  r procs(i):1  i procs(i)="" k procs(i)
  u oldio c "lsof"
- quit
+ quit:$quit i-2 quit
  ;
 INTRPT(%J) ; [Public] Send mupip interrupt (currently SIGUSR1) using $gtm_dist/mupip
  N %CMD S %CMD="$gtm_dist/mupip intrpt "_%J
