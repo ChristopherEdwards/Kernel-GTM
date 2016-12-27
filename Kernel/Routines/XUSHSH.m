@@ -1,4 +1,4 @@
-XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2016-12-22  12:32 PM
+XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2016-12-26  4:44 PM
  ;;8.0;KERNEL;**655,659**;Jul 10, 1995;Build 22
  ;Per VA Directive 6402, this routine should not be modified.
  ;
@@ -22,7 +22,6 @@ B ;Intrinsic subroutine.
  ;
  ;
  ;
- Q
  ;
 C ;Intrinsic subroutine.
  ;
