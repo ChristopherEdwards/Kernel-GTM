@@ -1,9 +1,21 @@
-ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-21  7:01 PM
+ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-27  12:36 PM
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
- I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",0)
+ I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",3)
  Q
+ ;
+COV ; [Coverage of Unit Tests]
+ N NMSPS
+ S (NMSPS("%ZOSV*"),NMSPS("%ZISTCPS"),NMSPS("%ZISH"),NMSPS("ZTMGRSET"))=""
+ S (NMSPS("XLFNSLK"),NMSPS("XLFIPV"),NMSPS("XUSHSH"),NMSPS("XQ82"))=""
+ S (NMSPS("ZSY"))=""
+ D COV^%ut1(.NMSPS,"D ^ZZUTZOSV",2)
+ QUIT
+ ;
+SHUTDOWN ; 
+ S $ZSOURCE=$T(+0)
+ QUIT
  ;
 ZRO1 ; @TEST $ZROUTINES Parsing Single Object Multiple dirs
  N ZR S ZR="o(p r) /var/abc(/var/abc/r/) /abc/def $gtm_dist/libgtmutl.so vista.so"
@@ -192,13 +204,11 @@ EC1 ;
  ;
 ZTMGRSET ; @TEST ZTMGRSET Renames Routines on GT.M
  ;ZEXCEPT: shell
- N %ZR
+ N %ZR,%Y,%YY
  N RTNFS S RTNFS="_ZTLOAD1.o"
  D SILENT^%RSEL("%ZTLOAD1","OBJ")
  N FILE S FILE=%ZR("%ZTLOAD1")_RTNFS
- N COMM S COMM="stat -c %X "_FILE
- O "P":(shell="/bin/sh":comm=COMM)::"pipe"
- U "P" N %Y R %Y:1 C "P"
+ S %Y=$$RETURN^%ZOSV("stat -c %X "_FILE)
  N ZTOS S ZTOS=$$OSNUM^ZTMGRSET()
  N SCR S SCR="I 0"
  N ZTMODE S ZTMODE=2
@@ -207,11 +217,20 @@ ZTMGRSET ; @TEST ZTMGRSET Renames Routines on GT.M
  D ^%ZISC
  D SILENT^%RSEL("%ZTLOAD1","OBJ")
  N FILE S FILE=%ZR("%ZTLOAD1")_RTNFS
- N COMM S COMM="stat -c %X "_FILE
- O "P":(shell="/bin/sh":comm=COMM)::"pipe"
- U "P" N %YY R %YY:1 C "P"
+ S %YY=$$RETURN^%ZOSV("stat -c %X "_FILE)
  D CHKTF^%ut(%YY'<%Y)
+ ;
+ ; Now that we know that it works, just run some of the other EPs to inc coverage
+ N IOP S IOP="NULL" D ^%ZIS U IO
+ D PATCH^ZTMGRSET(599) ; %ZIS
+ ;
+ N DTIME S DTIME=.00001
+ D NAME^ZTMGRSET
+ D GLOBALS^ZTMGRSET
+ D RUM^ZTMGRSET
+ D ^%ZISC
  QUIT
+ ;
 ZHOROLOG ; @TEST $ZHOROLOG Functions
  Q:$$VERSION^%ZOSV<6.3
  N %ZH0,%ZH1,%ZH2
@@ -275,6 +294,7 @@ SSVNJOB ; @TEST Replacement for ^$JOB in XQ82
  L +SSVNJOB
  L
  D CHKTF^%ut($D(^TMP(CHILDPID)))
+ S ^XUTL("XQ",$J)="" ; So that ^XQ82 won't kill our temp globals 
  D ^XQ82
  D CHKTF^%ut('$D(^TMP(CHILDPID)))
  QUIT
@@ -443,7 +463,7 @@ LIST ; @TEST LIST^%ZISH
  N % S %=$$LIST^%ZISH(PATH,$NA(%ARR),$NA(%RET))
  N CNT,I
  S CNT=0,I=""
- F  S I=$O(%RET(I)) Q:I=""  S CNT=CNT+1 
+ F  S I=$O(%RET(I)) Q:I=""  S CNT=CNT+1
  D CHKTF^%ut(CNT'<3,1)
  D CHKTF^%ut(%,2)
  ;
@@ -458,7 +478,7 @@ LIST ; @TEST LIST^%ZISH
  N % S %=$$LIST^%ZISH("$vista_home/r/",$NA(%ARR),$NA(%RET))
  N CNT,I
  S CNT=0,I=""
- F  S I=$O(%RET(I)) Q:I=""  S CNT=CNT+1 
+ F  S I=$O(%RET(I)) Q:I=""  S CNT=CNT+1
  D CHKTF^%ut(CNT>20000,4)
  D CHKTF^%ut(%,5)
  QUIT
@@ -545,6 +565,12 @@ BROKER ; @TEST Test the new GT.M MTL Broker
  W ! ; reset $X
  QUIT
  ;
+XUSHSH ; @TEST Top of XUSHSH
+ N X S X="TEST"
+ D ^XUSHSH
+ D CHKTF^%ut(X="TEST")
+ QUIT
+ ;
 SHA ; @TEST SHA-1 and SHA-256 in Hex and Base64
  D CHKEQ^%ut($$SHAHASH^XUSHSH(160,"test"),"A94A8FE5CCB19BA61C4C0873D391E987982FBBD3")
  D CHKEQ^%ut($$SHAHASH^XUSHSH(160,"test","H"),"A94A8FE5CCB19BA61C4C0873D391E987982FBBD3")
@@ -569,8 +595,6 @@ RSAENC ; @TEST Test RSA Encryption
  D CHKTF^%ut($ZL(CIPHERTEXT)>$ZL(SECRET))
  N DECRYPTION S DECRYPTION=$$RSADECR^XUSHSH(CIPHERTEXT,"/tmp/mycert.key")
  D CHKEQ^%ut(SECRET,DECRYPTION)
- O "/tmp/mycert.pem":readonly C "/tmp/mycert.pem":delete
- O "/tmp/mycert.key":readonly C "/tmp/mycert.key":delete
  ;
  ; Create RSA certificate and private key with a password
  ; Apparently, no way to do all of this in a single line in openssl; have to do
@@ -588,8 +612,8 @@ RSAENC ; @TEST Test RSA Encryption
  S %CMD="openssl req -new -key /tmp/mycert.key -passin pass:monkey1234 -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -out /tmp/mycert.csr"
  N % S %=$$RETURN^%ZOSV(%CMD,1)
  D CHKTF^%ut(%=0)
- I $$VERSION^%ZOSV["nix" S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
- I $$VERSION^%ZOSV["arwin" S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
+ S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
+ ;I $$VERSION^%ZOSV["arwin" S %CMD="openssl req -x509 -days 365 -sha256 -in /tmp/mycert.csr -subj '/C=US/ST=Washington/L=Seattle/CN=www.smh101.com' -key /tmp/mycert.key -passin pass:monkey1234 -out /tmp/mycert.pem"
  N % S %=$$RETURN^%ZOSV(%CMD,1)
  D CHKTF^%ut(%=0)
  N CIPHERTEXT S CIPHERTEXT=$$RSAENCR^XUSHSH(SECRET,"/tmp/mycert.pem")
@@ -605,3 +629,25 @@ AESENC ; @TEST Test AES Encryption
  D CHKEQ^%ut(SECRET,Y)
  QUIT
  ;
+ZSY ; @TEST Run System Status
+ ; ZEXCEPT: in,out,err
+ N IOP S IOP="NULL" D ^%ZIS U IO
+ D ^ZSY
+ N %utAnswer s %utAnswer=2
+ D QUERY^ZSY
+ N nProcs s nProcs=$$UNIXLSOF^ZSY()
+ D HALTALL^ZSY ; Kill all other processes
+ N nProcsAfter S nProcsAfter=$$UNIXLSOF^ZSY()
+ D CHKTF^%ut(nProcs>nProcsAfter)
+ D CHKTF^%ut(nProcsAfter=1)
+ D ^ZTMB ; bring it back up.
+ D IMAGE^ZSY
+ D LW^ZSY
+ D ERR^ZSY
+ D UERR^ZSY
+ D SUCCEED^%ut
+ D ^%ZISC
+ QUIT
+ ;
+XTROU ;;
+ ;;ZZUTZOSV2
