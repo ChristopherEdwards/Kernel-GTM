@@ -1,4 +1,4 @@
-%ZISH ;ISF/AC,RWF - GT.M for VMS/Unix Host file Control ;2016-12-20  3:02 PM
+%ZISH ;ISF/AC,RWF - GT.M for VMS/Unix Host file Control ;2016-12-27  2:54 PM
  ;;8.0;KERNEL;**275,306,385,524**;Jul 10, 1995;Build 12
  ; for GT.M for Unix/VMS, version 4.3
  ;
@@ -132,12 +132,12 @@ MAKEREF(HF,IX,OVF) ;Internal call to rebuild global ref.
  ;Return %ZISHF,%ZISHO,%ZISHI,%ZISUB
  N I,F,MX
  S OVF=$G(OVF,"%ZISHOF")
- S %ZISHI=$$QS^DDBRAP(HF,IX),MX=$$QL^DDBRAP(HF) ;
+ S %ZISHI=$QS(HF,IX),MX=$QL(HF) ;
  S F=$NA(@HF,IX-1) ;Get first part
  I IX=1 S %ZISHF=F_"(%ZISHI" ;Build root, IX=1
  I IX>1 S %ZISHF=$E(F,1,$L(F)-1)_",%ZISHI" ;Build root
  S %ZISHO=%ZISHF_","_OVF_",%OVFCNT)" ;Make overflow
- F I=IX+1:1:MX S %ZISHF=%ZISHF_",%ZISUB("_I_")",%ZISUB(I)=$$QS^DDBRAP(HF,I)
+ F I=IX+1:1:MX S %ZISHF=%ZISHF_",%ZISUB("_I_")",%ZISUB(I)=$QS(HF,I)
  S %ZISHF=%ZISHF_")"
  Q
 FTG(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;ef,SR. Unload contents of host file into global
@@ -153,7 +153,8 @@ FTG(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;ef,SR. Unload contents of host file into global
  D OPEN^%ZISH(,%ZX1,%ZX2,"R")
  I POP Q 0
  N $ETRAP S %EXIT=0,$ETRAP="S %ZA=1,%EXIT=1,$ECODE="""" Q"
- U IO F  K %XX D READNXT(.%XX) Q:$$EOF(%ZA)  D
+ N MAX S MAX=$$MAXREC(%ZISHF)
+ U IO F  K %XX D READNXT(.%XX,MAX) Q:$$EOF(%ZA)  D
  . S @%ZISHF=%XX
  . I $D(%XX)>2 F %OVFCNT=1:1 Q:'$D(%XX(%OVFCNT))  S @%ZISHO=%XX(%OVFCNT)
  . S %ZISHI=%ZISHI+1
@@ -164,11 +165,12 @@ FTG(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;ef,SR. Unload contents of host file into global
 ERREOF D CLOSE() ;Got error Reading file
  Q 0
  ;
-READNXT(REC) ;
+READNXT(REC,MAX) ;
  N T,I,X,%
- U IO R X:2 S %ZA=$ZEOF,REC=$E(X,1,255)
- Q:$L(X)<256
- S %=256 F I=1:1 Q:$L(X)<%  S REC(I)=$E(X,%,%+254),%=%+255
+ U IO R X:0 S %ZA=$ZEOF,REC=$E(X,1,MAX-1)
+ Q:$L(X)<MAX
+ S %=MAX
+ F I=1:1 Q:$L(X)<%  S REC(I)=$E(X,%,%+(MAX-2)),%=%+(MAX-1)
  Q
  ;
 GTF(%ZX1,%ZX2,%ZX3,%ZX4) ;ef,SR. Load contents of global to host file.
@@ -206,3 +208,10 @@ MGTF(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;
  D CLOSE() ;Normal Exit
  Q 1
  ;
+MAXREC(GLO) ; [Public] Maximum Record Size for a Global
+ ; Global passed by name
+ N REGION S REGION=$VIEW("REGION",$NA(@GLO))
+ I REGION="" S $EC=",U-ERROR,"
+ N FDUMP
+ D DUMP^%DSEWRAP(REGION,.FDUMP,"fileheader","all")
+ Q FDUMP(REGION,"Maximum record size")

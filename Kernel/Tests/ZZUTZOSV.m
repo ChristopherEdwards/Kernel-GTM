@@ -1,4 +1,4 @@
-ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-27  12:36 PM
+ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-27  2:21 PM
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
@@ -12,6 +12,8 @@ COV ; [Coverage of Unit Tests]
  S (NMSPS("ZSY"))=""
  D COV^%ut1(.NMSPS,"D ^ZZUTZOSV",2)
  QUIT
+ ;
+STARTUP QUIT
  ;
 SHUTDOWN ; 
  S $ZSOURCE=$T(+0)
@@ -483,7 +485,7 @@ LIST ; @TEST LIST^%ZISH
  D CHKTF^%ut(%,5)
  QUIT
  ;
-MV ; @TEST
+MV ; @TEST MV^%ZISH
  N POP
  D OPEN^%ZISH(,,"test_for_sam2.txt","W")
  I POP D FAIL^%ut("Couldn't open file") QUIT
@@ -500,7 +502,12 @@ MV ; @TEST
  D CHKTF^%ut(POP)
  QUIT
  ;
-FTG ; @TEST
+FTG ; @TEST $$FTG^%ZISH
+ K ^TMP($J)
+ N % S %=$$FTG^%ZISH("/usr/include","stdlib.h",$NA(^TMP($J,1,0)),2,"VVV")
+ N % S %=$$FTG^%ZISH("/usr/include","mpg123.h",$NA(^TMP($J,1,0)),2,"VVV")
+ zwrite ^TMP($J,*)
+ B
  QUIT
  ;
 GTF ; @TEST
@@ -629,7 +636,7 @@ AESENC ; @TEST Test AES Encryption
  D CHKEQ^%ut(SECRET,Y)
  QUIT
  ;
-ZSY ; @TEST Run System Status
+ZSY ; #TEST Run System Status
  ; ZEXCEPT: in,out,err
  N IOP S IOP="NULL" D ^%ZIS U IO
  D ^ZSY
