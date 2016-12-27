@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-22  12:22 PM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-27  1:10 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -135,11 +135,15 @@ EC() ; Error Code: returning $ZS in format more like $ZE from DSM
  Q %ZE
  ;
 DOLRO ;SAVE ENTIRE SYMBOL TABLE IN LOCATION SPECIFIED BY X
- ;S Y="%" F  S Y=$O(@Y) Q:Y=""  D
- ;. I $D(@Y)#2 S @(X_"Y)="_Y)
- ;. I $D(@Y)>9 S %X=Y_"(",%Y=X_"Y," D %XY^%RCR
- S Y="%" F  M:$D(@Y) @(X_"Y)="_Y) S Y=$O(@Y) Q:Y=""
- Q
+ ; Old Algorithm
+ S Y="%" F  M @(X_"Y)="_Y) S Y=$O(@Y) Q:Y=""
+ QUIT
+ ;
+ ; New Algorithm; faster by 2-6ms
+ ;N %11111,Y
+ ;ZSHOW "V":%11111
+ ;N %00000 F %00000=0:0 S %00000=$O(%11111("V",%00000)) Q:'%00000  S Y=$P(%11111("V",%00000),"=") I Y'["(" M @(X_"Y)="_Y)
+ ;QUIT
  ;
 ORDER ;SAVE PART OF SYMBOL TABLE IN LOCATION SPECIFIED BY X
  N %
