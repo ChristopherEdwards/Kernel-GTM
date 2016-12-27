@@ -1,4 +1,4 @@
-%ZOSV2 ;ISF/RWF,FIS/KSB,VEN/SMH - More GT.M support routines ;12/25/2016
+%ZOSV2 ;ISF/RWF,FIS/KSB,VEN/SMH - More GT.M support routines ;2016-12-26  2:48 PM
  ;;8.0;KERNEL;**275,425**;Jul 10, 1995;Build 18
  Q
  ;SAVE: DIE open array reference.
@@ -9,17 +9,10 @@ SAVE(RN) ;Save a routine
  S %I=$I,SP=" ",%F=$$RTNDIR^%ZOSV()_$TR(RN,"%","_")_".m"
  O %F:(NEWVERSION:NOWRAP:STREAM) U %F
  F  S XCN=$O(@(DIE_XCN_")")) Q:XCN'>0  S %=@(DIE_XCN_",0)") Q:$E(%,1)="$"  I $E(%)'=";" W %,!
- C %F ;S %N=$$NULL
- ZLINK RN
- ;C %N
+ C %F
+ ZLINK RN:"-nowarning"
  U %I
  Q
-NULL() ;Open and use null to hide talking.  Return open name
- ;Doesn't work for compile errors, which go to stderr
- N %N S %N=$S($ZV["VMS":"NLA0:",1:"/dev/null")
- O %N U %N
- Q %N
- ;
 DEL(RN) ; Delete Routine, VEN/SMH
  ; Input: Routine Name by Value
  ; Output: None
@@ -51,18 +44,18 @@ DELLOOP ; Loop entry point
  ;
  ;
  ;LOAD: DIF open array to receive the routine lines.
- ;      XCNP The starting index -1 (cuz uses $INCREMENT).
 LOAD(RN) ;Load a routine using $TEXT
  N %
- S %N=0 F  S %=$T(+$I(%N)^@RN) Q:$L(%)=0  S @(DIF_$I(XCNP)_",0)")=%
+ S %N=0 F  S %=$T(+$I(%N)^@RN) Q:$L(%)=0  S @(DIF_%N_",0)")=%
  Q
  ;
 LOAD2(RN) ;Load a routine from the Filesystem
  N %,%1,%F,%N,$ETRAP
  S %I=$I,%F=$$RTNDIR^%ZOSV()_$TR(RN,"%","_")_".m"
  O %F:(READONLY):1 Q:'$T  U %F
- F  R %1 Q:$ZEOF  S @(DIF_$I(XCNP)_",0)")=$TR(%1,$C(9)," ")
- C %F U:$L(%I) %I
+ N CNT S CNT=0
+ F  R %1 Q:$ZEOF  S CNT=$I(CNT),@(DIF_CNT_",0)")=%1
+ U:$L(%I) %I C %F
  Q
  ;
 RSUM(RN) ;Calculate a RSUM value
