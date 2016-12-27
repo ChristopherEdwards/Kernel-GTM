@@ -1,4 +1,4 @@
-ZTMGRSET ;SF/RWF,PUG/TOAD - SET UP THE MGR ACCOUNT FOR THE SYSTEM ;2016-12-20  3:04 PM
+ZTMGRSET ;SF/RWF,PUG/TOAD - SET UP THE MGR ACCOUNT FOR THE SYSTEM ;2016-12-26  4:52 PM
  ;;8.0;KERNEL;**34,36,69,94,121,127,136,191,275,355,446,584**;JUL 10, 1995;Build 6
  ;Per VHA Directive 2004-038, this routine should not be modified
  ;
@@ -12,8 +12,8 @@ A W !!,"ZTMGRSET Version ",$P($T(+2),";",3)," Patch level ",$P($T(+2),";",5)
  . R "Should I continue? N//",X:120
  . Q
  S ZTOS=$$OS() I ZTOS'>0 W !,"OS type not selected. Exiting ZTMGRSET." Q
- I ZTMODE D  I (PCNM<1)!(PCNM>999) W !,"Need a Patch number to load." Q
- . I ZTMODE<2 R !!,"Patch number to load: ",PCNM:120 Q:(PCNM<1)!(PCNM>999)
+ I ZTMODE D  I (PCNM<1)!(PCNM>9999999) W !,"Need a Patch number to load." Q
+ . I ZTMODE<2 R !!,"Patch number to load: ",PCNM:120 Q:(PCNM<1)!(PCNM>9999999)
  . S SCR="I $P($T(+2^@X),"";"",5)?.E1P1"_$C(34)_PCNM_$C(34)_"1P.E"
  ;
  K ^%ZOSF("MASTER"),^("SIGNOFF") ;Remove old nodes.
@@ -29,7 +29,7 @@ RELOAD ;Reload any patched routines
  ;
 PATCH(PCNM) ;Post install Reload any patched routines
  N %D,%S,I,OSMAX,U,X,X1,X2,Y,Z1,Z2,ZTOS,ZTMODE,SCR
- I (1>PCNM)!(PCNM>999) D MES("PATCH NUMBER OUT OF RANGE",1) Q
+ I (1>PCNM)!(PCNM>9999999) D MES("PATCH NUMBER OUT OF RANGE",1) Q
  D MES("Rename the routines in Patch "_PCNM,1)
  S ZTMODE=2 G A
  Q
@@ -169,7 +169,9 @@ COPY(FROM,TO) ;
  N IO,PATH,COPY,CMD S PATH=$$R,IO=$IO
  S FROM="^"_FROM,TO=PATH_$TR(TO,"%","_")_".m"
  O TO:NEWVERSION U TO ZPRINT @FROM U IO C TO
- ZLINK TO
+ N OLDSOURCE S OLDSOURCE=$ZSOURCE ; Don't change my zlink history
+ ZLINK TO:"-nowarning" ; don't print out compile time errors
+ S $ZSOURCE=OLDSOURCE ; ditto-1
  Q
  ;
 R() ; routine directory for GT.M
