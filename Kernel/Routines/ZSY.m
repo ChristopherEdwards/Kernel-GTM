@@ -1,4 +1,4 @@
-ZSY	;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2016-12-26  5:45 PM
+ZSY	;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2016-12-28  4:25 PM
  ;;8.0;KERNEL;**349**;Jul 10, 1995;Build 2
  ;GT.M/VA %SY utility - status display
  ;From the top just show by PID
@@ -7,6 +7,17 @@ ZSY	;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2016-12-26  5:45 PM
  L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
  S IMAGE=0,MODE=0 D WORK
  Q
+ ;
+JOBEXAM(%ZPOS) ; [Called by ^ZU]
+ N %reference S %reference=$REFERENCE
+ S ^XUTL("XUSYS",$J,0)=$H,^XUTL("XUSYS",$J,"INTERRUPT")=$G(%ZPOS)
+ S ^XUTL("XUSYS",$J,"ZMODE")=$ZMODE ; SMH - INTERACTIVE or OTHER
+ I %ZPOS'["GTM$DMOD" S ^XUTL("XUSYS",$J,"codeline")=$T(@%ZPOS)
+ K ^XUTL("XUSYS",$J,"JE")
+ I $G(^XUTL("XUSYS","COMMAND"))'="EXAM" ZSHOW "SD":^XUTL("XUSYS",$J,"JE")
+ I $G(^XUTL("XUSYS","COMMAND"))="EXAM" ZSHOW "*":^XUTL("XUSYS",$J,"JE")
+ I $G(^XUTL("XUSYS",$J,"CMD"))="HALT" D H2^XUSCLEAN G HALT^ZU
+ Q 1
  ;
 QUERY	N IMAGE,MODE,X
  L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
@@ -123,10 +134,16 @@ UNIX	;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  S $ET="D UERR^ZSY"
  S %I=$I,U="^"
  n procs
- D UNIXLSOF(.procs)
- n i f i=1:1 q:'$d(procs(i))  D
- . I $ZV["Linux" S CMD="ps o pid,tty,stat,time,cmd -p"_procs(i)
- . I $ZV["Darwin" S CMD="ps o pid,tty,stat,time,args -p"_procs(i)
+ D INTRPTALL(.procs)
+ n procgrps
+ n done s done=0
+ n j s j=1
+ n i f i=1:1 q:'$d(procs(i))  d
+ . s procgrps(j)=$g(procgrps(j))_procs(i)_" "
+ . i $l(procgrps(j))>970 s j=j+1 ; Max GT.M pipe len is 1023
+ f j=1:1 q:'$d(procgrps(j))  d
+ . I $ZV["Linux" S CMD="ps o pid,tty,stat,time,cmd -p"_procgrps(j)
+ . I $ZV["Darwin" S CMD="ps o pid,tty,stat,time,args -p"_procgrps(j)
  . O "ps":(SHELL="/bin/sh":COMMAND=CMD:READONLY)::"PIPE" U "ps"
  . F  R %TEXT Q:$ZEO  D
  .. S %LINE=$$VPE(%TEXT," ",U) ; parse each line of the ps output
@@ -148,7 +165,6 @@ JOBSET	;Get data from a Linux job
  S PS=$S(PS="D":"lef",PS="R":"com",PS="S":"hib",1:PS)
  S CTIME=$P(%LINE,U,4) ;cpu time
  S JTYPE=$P(%LINE,U,6),ACCESS(JTYPE)=JTYPE
- D INTRPT(%J)
  I $D(^XUTL("XUSYS",%J)) S UNAME=$G(^XUTL("XUSYS",%J,"NM"))
  E  S UNAME="unknown"
  S RTN="" ; Routine, get at display time
@@ -188,9 +204,18 @@ UNIXLSOF(procs) ; [Public] - Get all processes accessing THIS database (only!)
  quit:$quit i-2 quit
  ;
 INTRPT(%J) ; [Public] Send mupip interrupt (currently SIGUSR1) using $gtm_dist/mupip
- N %CMD S %CMD="$gtm_dist/mupip intrpt "_%J
- n oldio s oldio=$io
- o "intrpt":(shell="/bin/sh":command=%CMD)::"pipe" u "intrpt",oldio c "intrpt"
+ N SIGUSR1
+ I $ZV["Linux" S SIGUSR1=10
+ I $ZV["Darwin" S SIGUSR1=30
+ N % S %=$ZSIGPROC(%J,SIGUSR1)
+ QUIT
+ ;
+INTRPTALL(procs) ; [Public] Send mupip interrupt to every single database process
+ N SIGUSR1
+ I $ZV["Linux" S SIGUSR1=10
+ I $ZV["Darwin" S SIGUSR1=30
+ D UNIXLSOF(.procs)
+ N i,% F i=1:1 q:'$d(procs(i))  S %=$ZSIGPROC(procs(i),SIGUSR1)
  QUIT
  ;
 HALTALL ; [Public] Gracefully halt all jobs accessing current database
@@ -203,7 +228,7 @@ HALTALL ; [Public] Gracefully halt all jobs accessing current database
  n procs d UNIXLSOF(.procs)
  ;
  ; Tell them to stop
- f i=1:1 q:'$d(procs(i))  s ^XUTL("XUSYS",procs(i),"CMD")="HALT"
+ n i f i=1:1 q:'$d(procs(i))  s ^XUTL("XUSYS",procs(i),"CMD")="HALT"
  K ^XUTL("XUSYS",$J,"CMD")  ; but not us
  ;
  ; Sayonara
