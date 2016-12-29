@@ -1,9 +1,6 @@
-%ZISH ;ISF/AC,RWF - GT.M for VMS/Unix Host file Control ;2016-12-27  2:54 PM
+%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2016-12-28  4:48 PM
  ;;8.0;KERNEL;**275,306,385,524**;Jul 10, 1995;Build 12
  ; for GT.M for Unix/VMS, version 4.3
- ;
-OPENERR ;
- Q 0
  ;
 OPEN(X1,X2,X3,X4,X5,X6) ;SR. Open file
  ;D OPEN^%ZISH([handlename],[directory],filename,[accessmode],[recsize])
@@ -13,15 +10,30 @@ OPEN(X1,X2,X3,X4,X5,X6) ;SR. Open file
  ;
  N %,%1,%2,%IO,%I2,%P,%T,X,Y,$ETRAP
  S $ETRAP="D OPNERR^%ZISH"
+ ; If X2 isn't supplied, get default directory; or resolve it if supplied
  S U="^",X2=$$DEFDIR($G(X2)),X4=$$UP^XLFSTR(X4)
+ ;
+ ; These are common sense
  S Y=$S(X4["A":"append",X4["R":"readonly",X4["W":"newversion",1:"readonly")
- S Y=Y_$S(X4["B":":fixed:nowrap:recordsize=512",$G(X5)&(X4["W"):":WIDTH="_+X5,1:"")
- S:$E(Y)=":" Y=$E(Y,2,999) S %IO=X2_X3,%I2="%IO:"_$S($L(Y):"("_Y_")",1:"")_":3"
- O @%I2 S %T=$T
- I '%T S POP=1 Q
+ ;
+ ; Binary mode. ! and # have no effect.
+ ; NB: Reads are in record size; writes pad out to record size
+ N RECSIZE S RECSIZE=$G(X5,"512")
+ I X4["B" S Y=Y_":fixed:nowrap:recordsize="_RECSIZE ; Binary Mode
+ ;
+ ; Streaming Mode (almost everybody wants this all of the time)
+ I X4'["B",'$G(X5) S Y=Y_":nowrap:stream" ; Streaming Mode (default)
+ ;
+ ; Variable records mode. Records are TRUNCATED at a specific width,
+ ; but, unlike fixed records, you can end them early with a !.
+ I X4'["B",$G(X5)  S Y=Y_":variable:nowrap:recordsize="_+X5
+ ;
+ S:$E(Y)=":" $E(Y)=""
+ S %IO=X2_X3,%I2="%IO:"_$S($L(Y):"("_Y_")",1:"")_":0"
+ O @%I2 E  S POP=1 QUIT
+ ;
  S IO=%IO,IO(1,IO)="",IOT="HFS",IOM=80,IOSL=60,POP=0 D SUBTYPE^%ZIS3($G(X6))
  I $G(X1)]"" D SAVDEV^%ZISUTL(X1)
- ;U IO U $P ;Don't do a USE.
  Q
 OPNERR ;error on open
  S POP=1,$ECODE=""
@@ -51,9 +63,17 @@ DEL(%ZX1,%ZX2) ;ef,SR. Del fl(s)
 DELERR ;Trap any $ETRAP error, unwind and return.
  S $ETRAP="D UNWIND^%ZTER"
  S %ZXDEL=0
- D UNWIND^%ZTER
- Q
+ D UNWIND^%ZTER Q
  ;
+DEL1(%ZX3) ;ef,SR. Delete one file
+ N %ZI1,%ZI2
+ D SPLIT(%ZX3,.%ZI1,.%ZI2) S %ZI2(%ZI2)=""
+ Q $$DEL(%ZI1,$NA(%ZI2))
+ ;
+SPLIT(%I,%O1,%O2) ;Split to path,file
+ S %D="/",%O1="",%O2=""
+ S D=$L(%I,%D),%O1=$P(%I,%D,1,D-1),%O2=$P(%I,%D,D)
+ Q
 LIST(%ZX1,%ZX2,%ZX3) ;ef,SR. Set local array holding fl names
  ;S Y=$$LIST^ZISH("/dir/","list_root","return_root")
  ;list_root can have XX("A*"), XX("test.com")...
@@ -69,11 +89,6 @@ LSTX ;
  S $ECODE=""
  Q ($Q(@%ZX3)]"")
  ;
-SPAWNERR ;TRAP ERROR OF SPAWN
- O %ZISHDL1:READONLY:1 I $T C %ZISHDL1:DELETE
- S $ECODE=""
- Q 0
- ;
 MV(X1,X2,Y1,Y2) ;ef,SR. Rename a fl
  ;S Y=$$MV^ZISH("/dir/","fl","/dir/","fl")
  N %Z,%C
@@ -86,47 +101,27 @@ MV(X1,X2,Y1,Y2) ;ef,SR. Rename a fl
  Q $L(%Z)>0
  ;
 PWD() ;ef,SR. Print working directory
- N Y
- S Y=$$DEFDIR("")
- S:Y="" Y=$ZDIR
- Q Y
+ Q $ZDIRECTORY
  ;
 DEFDIR(DF) ;ef. Default Dir and frmt
- S DF=$G(DF) Q:DF="." "" ;Special way to get current dir.
+ S DF=$G(DF)
  S:DF="" DF=$P($G(^XTV(8989.3,1,"DEV")),"^",1)
- ;Old code
- ;Check syntax, VMS needs : or [ ]
- I ^%ZOSF("OS")["VMS" D  Q DF ;***EXIT FOR VMS/GTM
- . N P1,P2
- . S DF=$ZPARSE(DF)
- . I DF[":" S P1=$P(DF,":")_":",P2=$P(DF,":",2)
- . E  S P1="",P2=DF
- . I P1="",P2["$" S DF=P2 Q  ;Assume a logical
- . I $L(P2) S:P2'["[" P2="["_P2 S:P2'["]" P2=P2_"]"
- . S DF=P1_P2
- . Q
  ;
- ;Check syntax, Unix check leading & trailing "/"
+ ; $ZPARSE is file specific; we need to tell it that we are looking for a DIRECTORY!
+ ; Otherwise, we will get a false positive
+ I $E(DF,$L(DF))'="/" S DF=DF_"/" 
+ ;
  S DF=$ZPARSE(DF)
- I "./"'[$E(DF) S DF="/"_DF
- I $E(DF,$L(DF))'="/" S DF=DF_"/"
+ I DF="" S $EC=",U-INVALID-DIRECTORY,"
+ ;
  Q DF
+ ;
 STATUS() ;ef,SR. Return EOF status
  U $I
  Q $ZEOF
  ;
 EOF(X) ;Eof flag, Pass in $ZA
  Q X
-QL(X) ;Qlfrs
- Q:X=""
- S:$E(X)'="-" X="-"_X
- Q
-FL(X) ;Fl len
- N ZOSHP1,ZOSHP2
- S ZOSHP1=$P(X,"."),ZOSHP2=$P(X,".",2)
- I $L(ZOSHP1)>14 S X=4 Q
- I $L(ZOSHP2)>8 S X=4 Q
- Q
  ;
 MAKEREF(HF,IX,OVF) ;Internal call to rebuild global ref.
  ;Return %ZISHF,%ZISHO,%ZISHI,%ZISUB
@@ -161,9 +156,6 @@ FTG(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;ef,SR. Unload contents of host file into global
  . Q
  D CLOSE() ;Normal exit
  Q '%EXIT
- ;
-ERREOF D CLOSE() ;Got error Reading file
- Q 0
  ;
 READNXT(REC,MAX) ;
  N T,I,X,%
@@ -202,9 +194,14 @@ MGTF(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;
  D MAKEREF(%ZX1,%ZX2)
  D OPEN^%ZISH(,%ZX3,%ZX4,%ZX5) ;Default dir set in open
  I POP Q 0
- N X
+ U IO
  N $ETRAP S $ETRAP="S $EC="""" D CLOSE^%ZISH() Q 0"
- F  Q:'($D(@%ZISHF)#2)  S %ZX=@%ZISHF,%ZISHI=%ZISHI+1 U IO W %ZX,!
+ ;
+ ; This algorithm takes 20ms for 200,4,5; 
+ ; Prev algo was faster I think, but had a bug where it would stop early if we skipped a sub
+ D  F  S %ZISHI=$O(@$NA(@%ZX1,%ZX2-1)@(%ZISHI)) Q:'%ZISHI  D
+ . Q:'($D(@%ZISHF)#2)
+ . W @%ZISHF,!
  D CLOSE() ;Normal Exit
  Q 1
  ;
