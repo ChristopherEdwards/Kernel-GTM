@@ -1,4 +1,4 @@
-ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-27  2:21 PM
+ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-28  3:24 PM
  ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
@@ -7,16 +7,15 @@ ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-27  2:21 PM
  ;
 COV ; [Coverage of Unit Tests]
  N NMSPS
- S (NMSPS("%ZOSV*"),NMSPS("%ZISTCPS"),NMSPS("%ZISH"),NMSPS("ZTMGRSET"))=""
+ S (NMSPS("%ZOSV*"),NMSPS("%ZISH"),NMSPS("ZTMGRSET"))=""
  S (NMSPS("XLFNSLK"),NMSPS("XLFIPV"),NMSPS("XUSHSH"),NMSPS("XQ82"))=""
  S (NMSPS("ZSY"))=""
  D COV^%ut1(.NMSPS,"D ^ZZUTZOSV",2)
  QUIT
  ;
-STARTUP QUIT
  ;
-SHUTDOWN ; 
- S $ZSOURCE=$T(+0)
+SETNM ; @TEST Set Environment Name
+ D SETNM^%ZOSV("ZOSV UT for GT.M")
  QUIT
  ;
 ZRO1 ; @TEST $ZROUTINES Parsing Single Object Multiple dirs
@@ -114,6 +113,53 @@ ACTJ0 ; @TEST Force ^XUTL("XUSYS","CNT") to 0 to force algorithm to run
  ; 
  Q
  ;
+AVJ ; @TEST Available Jobs
+ D CHKTF^%ut($$AVJ^%ZOSV>0)
+ QUIT
+ ;
+DEVOK ; @TEST Dev Okay
+ N X,X1,Y
+ S X="ORB NOTIFICATION RESOURCE",X1="RES" D DEVOK^%ZOSV
+ D CHKTF^%ut(Y=0)
+ S X="NULL" D DEVOK^%ZOSV
+ D CHKTF^%ut(Y=0)
+ QUIT
+ ;
+DEVOPN ; @TEST Show open devices
+ N Y D DEVOPN^%ZOSV
+ D CHKTF^%ut(Y'="")
+ QUIT
+ ;
+GETPEER ; @TEST Get Peer
+ N PEER S PEER=$$GETPEER^%ZOSV
+ D SUCCEED^%ut
+ QUIT
+ ;
+PRGMODE ; @TEST Prog Mode
+ N % S %=$$PROGMODE^%ZOSV()
+ D PRGMODE^%ZOSV
+ D SUCCEED^%ut
+ QUIT
+ ;
+JOBPAR ; @TEST Job Parameter -- Dummy; doesn't do anything useful.
+ N X,Y S X=$J D JOBPAR^%ZOSV
+ D SUCCEED^%ut
+ QUIT
+ ;
+LOGRSRC ; @TEST Turn on Resource Logging
+ ; KMPR package not ported to GT.M. Noop.
+ D LOGRSRC^%ZOSV("TEST",1,"OPEN")
+ QUIT
+ ;
+ORDER ; @TEST Order
+ N X,Y
+ S X="^TMP($J,"
+ K ^TMP($J)
+ S Y="%ut*"
+ D ORDER^%ZOSV
+ D CHKTF^%ut(^TMP($J,"%ut","CHK")) ; Must be a number
+ QUIT
+ ;
 DOLRO ; @TEST Ensure symbol table is saved correctly
  N TEST,X
  ; Will check for this variable and value in the open root
@@ -135,7 +181,7 @@ TMTRAN ; @TEST Make sure that Taskman is running
  N ZTSK D Q^XUTMTZ
  D CHKTF^%ut(ZTSK)
  N TOTALWAIT S TOTALWAIT=0
- F  Q:'$D(^%ZTSK(ZTSK))  H .05 S TOTALWAIT=TOTALWAIT+.05 Q:TOTALWAIT>2
+ F  Q:'$D(^%ZTSK(ZTSK))  H .05 S TOTALWAIT=TOTALWAIT+.05 Q:TOTALWAIT>3
  D CHKTF^%ut(TOTALWAIT<2,"Taskman didn't process task")
  QUIT
  ;
@@ -156,6 +202,19 @@ VERSION ; @TEST VERSION
  D CHKTF^%ut(OS["nux"!(OS["nix")!(OS["BSD")!(OS["Darwin"))
  QUIT
  ;
+SID ; @TEST System ID
+ N SID S SID=$$SID^%ZOSV
+ D CHKTF^%ut(SID[$ZGBLDIR)
+ QUIT
+ ;
+UCI ; @TEST Get UCI/Vol
+ N Y D UCI^%ZOSV
+ D CHKTF^%ut(Y=^%ZOSF("PROD"))
+ QUIT
+UCICHECK ; @TEST Noop
+ N % S %=$$UCICHECK^%ZOSV(88)
+ D CHKEQ^%ut(88,%)
+ QUIT
 PARSIZ ; @TEST PARSIZE NOOP
  N X
  D PARSIZ^%ZOSV
@@ -186,6 +245,11 @@ BAUD ; @TEST BAUD NOOP
  N X D BAUD^%ZOSV
  D SUCCEED^%ut
  S X="UNKNOWN"
+ QUIT
+ ;
+SETTRM ; @TEST Set Terminators
+ D SETTRM^%ZOSV($C(10,13))
+ D SUCCEED^%ut
  QUIT
  ;
 LGR ; @TEST Last Global Reference
@@ -337,19 +401,6 @@ OPENNOH ; @TEST Read a Text File w/o a Handle
  D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
  QUIT
  ;
-OPENPATH ; @TEST Read a Text File w/ Full Path (like ZISHONT)
- N POP
- K ^TMP($J)
- D OPEN^%ZISH(,,"/usr/include/stdio.h","R")
- I POP D FAIL^%ut("Couldn't open file") QUIT
- U IO
- F  R ^TMP($J,$I(^TMP($J))):0 Q:$$STATUS^%ZISH()
- D CLOSE^%ZISH()
- W !
- D CHKTF^%ut(^TMP($J)>25)
- D CHKTF^%ut($D(^TMP($J,^TMP($J)-1)))
- QUIT
- ;
 OPENBLOR ; @TEST Read a File as a binary device (FIXED WIDTH)
  N POP
  K ^TMP($J)
@@ -375,7 +426,7 @@ OPENBLOW ; @TEST Write a File as a binary device (Use Capri zip file in 316.18)
  U IO
  F  S SUB=$O(^DVB(396.18,1,3,SUB)) Q:'SUB  W ^(SUB,0)
  D CLOSE^%ZISH()
- D OPEN^%ZISH(,$$DEFDIR^%ZISH(),FN,"RB")
+ D OPEN^%ZISH(,$$DEFDIR^%ZISH(),FN,"RB",61)
  I POP D FAIL^%ut("Couldn't open file") QUIT
  U IO
  N X R X:0
@@ -384,6 +435,27 @@ OPENBLOW ; @TEST Write a File as a binary device (Use Capri zip file in 316.18)
  D CHKTF^%ut($L(X)=61,"record size isn't correct")
  QUIT
  ;
+OPENBLOV ; @TEST Write and Read a variable record file
+ N POP
+ K ^TMP($J)
+ N SUB S SUB=$O(^DVB(396.18,174,3,0))
+ N FNNODE S FNNODE=^DVB(396.18,174,3,SUB,0)
+ N L S L=$P(FNNODE," ",2)
+ N FN S FN=$P(FNNODE," ",3)
+ D OPEN^%ZISH(,$$DEFDIR^%ZISH(),FN,"W",61)
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ F  S SUB=$O(^DVB(396.18,174,3,SUB)) Q:'SUB  W ^(SUB,0),!
+ D CLOSE^%ZISH()
+ D OPEN^%ZISH(,$$DEFDIR^%ZISH(),FN,"R")
+ I POP D FAIL^%ut("Couldn't open file") QUIT
+ U IO
+ N X R X:0
+ D CLOSE^%ZISH()
+ W !
+ D CHKTF^%ut($L(X)=61,"record size isn't correct")
+ QUIT
+
 OPENDF ; @TEST Open File from Default HFS Directory
  ; Uses the file from the last test.
  N POP
@@ -454,8 +526,9 @@ DEFDIR ; @TEST Default Directory
  S DEFDIR=$$DEFDIR^%ZISH("./lib")
  D CHKTF^%ut(DEFDIR="/usr/lib/","4")
  S $ZD=OLDD
- S DEFDIR=$$DEFDIR^%ZISH("/LKJASDLJ/ASLKDAIOUWRE/ASLK")
- D CHKTF^%ut(DEFDIR="")
+ D
+ . N $ET,$ES S $ET="S $EC="""" D SUCCEED^%ut,UNWIND^%ZTER"
+ . S DEFDIR=$$DEFDIR^%ZISH("/LKJASDLJ/ASLKDAIOUWRE/ASLK")
  QUIT
  ;
 LIST ; @TEST LIST^%ZISH
@@ -502,21 +575,81 @@ MV ; @TEST MV^%ZISH
  D CHKTF^%ut(POP)
  QUIT
  ;
-FTG ; @TEST $$FTG^%ZISH
+FTGGTF ; @TEST $$FTG^%ZISH & $$GTF^%ZISH
  K ^TMP($J)
  N % S %=$$FTG^%ZISH("/usr/include","stdlib.h",$NA(^TMP($J,1,0)),2,"VVV")
- N % S %=$$FTG^%ZISH("/usr/include","mpg123.h",$NA(^TMP($J,1,0)),2,"VVV")
- zwrite ^TMP($J,*)
- B
- QUIT
+ N LASTLINE S LASTLINE=$O(^TMP($J," "),-1)
+ D CHKTF^%ut(LASTLINE>50,1)
+ K ^TMP($J)
+ N I F I=1:1:20 S $P(^TMP($J,I,0),"=",300)="="
+ N % S %=$$GTF^%ZISH($NA(^TMP($J,1,0)),2,"/tmp/","test_long_records.glo")
+ D CHKTF^%ut(%,2)
+ D CHKTF^%ut($$RETURN^%ZOSV("stat /tmp/test_long_records.glo",1)=0,3)
+ K ^TMP($J)
+ N % S %=$$FTG^%ZISH("/tmp/","test_long_records.glo",$NA(^TMP($J,1,0)),2,"VVV")
+ N LASTLINE S LASTLINE=$O(^TMP($J," "),-1)
+ D CHKTF^%ut(LASTLINE=20,4)
+ N VVV S VVV=0
+ N I F I=0:0 S I=$O(^TMP($J,I)) Q:'I  I $D(^(I,"VVV")) S VVV=1
+ D CHKTF^%ut(VVV=0,5)
  ;
-GTF ; @TEST
+ ; Test maximum length
+ N MAX S MAX=$$MAXREC^%ZISH($NA(^TMP($J,1,0)))
+ N A,B,C
+ S $P(A,"=",MAX+20)="="
+ S $P(B,"=",MAX+20)="="
+ S $P(C,"=",MAX+20)="="
+ D OPEN^%ZISH(,"/tmp/","test_overflow_records.glo","W")
+ U IO W A,!,B,!,C,!
+ D CLOSE^%ZISH()
+ K ^TMP($J)
+ N % S %=$$FTG^%ZISH("/tmp/","test_overflow_records.glo",$NA(^TMP($J,1,0)),2,"VVV")
+ N VVV S VVV=0
+ N I F I=0:0 S I=$O(^TMP($J,I)) Q:'I  I $D(^(I,"VVV")) S VVV=1
+ D CHKTF^%ut(VVV=1,6)
  QUIT
  ;
 GATF ; @TEST
+ N % S %=$$GATF^%ZISH($NA(^VA(200,1,0)),2,"/tmp/","test_append_records.glo")
+ D CHKTF^%ut(%=1)
+ N % S %=$$GATF^%ZISH($NA(^DIC(5,1,0)),2,"/tmp/","test_append_records.glo")
+ D CHKTF^%ut(%=1)
+ N % S %=$$GATF^%ZISH($NA(^DIC(4,1,0)),2,"/tmp/","test_append_records.glo")
+ D CHKTF^%ut(%=1)
+ N VA200,DIC5,DIC4
+ S (VA200,DIC5,DIC4)=0
+ K ^TMP($J)
+ N % S %=$$FTG^%ZISH("/tmp/","test_append_records.glo",$NA(^TMP($J,1,0)),2)
+ N I,Z F I=0:0 S I=$O(^TMP($J,I)) Q:'I  S Z=^(I,0) D
+ . I Z["TASKMAN" S VA200=1 ; Taskman User
+ . I Z["DOCTOR" S VA200=1  ; ditto, WV
+ . I Z["CANADA" S DIC5=1   ; State File
+ . I Z["VISN" S DIC4=1     ; Institution File
+ . I Z["GALLUP" S DIC4=1   ; Ditto, for RPMS
+ D CHKTF^%ut(VA200=1)
+ D CHKTF^%ut(DIC5=1)
+ D CHKTF^%ut(DIC4=1)
  QUIT
  ;
 DEL1 ; @TEST
+ ; Diabetes.pnl.zip
+ ; test_append_records.glo
+ ; test_for_sam3.txt
+ ; test_long_records.glo
+ ; test_overflow_records.glo
+ ; test.sam
+ N % S %=$$DEL1^%ZISH("/tmp/Diabetes.pnl.zip")
+ D CHKTF^%ut(%=1)
+ N % S %=$$DEL1^%ZISH("/tmp/test_append_records.glo")
+ D CHKTF^%ut(%=1)
+ N % S %=$$DEL1^%ZISH("/tmp/test_for_sam3.txt")
+ D CHKTF^%ut(%=1)
+ N % S %=$$DEL1^%ZISH("/tmp/test_long_records.glo")
+ D CHKTF^%ut(%=1)
+ N % S %=$$DEL1^%ZISH("/tmp/test_overflow_records.glo")
+ D CHKTF^%ut(%=1)
+ N % S %=$$RETURN^%ZOSV("stat /tmp/test_overflow_records.glo",1)
+ D CHKTF^%ut(%'=0)
  QUIT
  ;
 DEL ; @TEST Delete files we created in the tests
@@ -550,12 +683,20 @@ DEL ; @TEST Delete files we created in the tests
  D CHKTF^%ut(%'=0,4)
  QUIT
  ;
+DELERR ; @TEST Delete Error
+ D
+ . N $ET,$ES
+ . D DELERR^%ZISH
+ D SUCCEED^%ut
+ QUIT
+ ;
 BROKER ; @TEST Test the new GT.M MTL Broker
  ; Old version died after first connection.
  ; NB: It DOES NOT WANT anything that's not IPv4.
  ; Hard to do on any modern computer that is hardwired to give you IPv6
  ; addressed for localhost.
  N PORT S PORT=58738
+ ; ZEXCEPT: ZISTCP,XWBTCPM1
  J ZISTCP^XWBTCPM1(58738)
  N BROKERJOB S BROKERJOB=$ZJOB
  N % S %=$$TEST^XWBTCPMT("127.0.0.1",PORT)
@@ -636,7 +777,7 @@ AESENC ; @TEST Test AES Encryption
  D CHKEQ^%ut(SECRET,Y)
  QUIT
  ;
-ZSY ; #TEST Run System Status
+ZSY ; @TEST Run System Status
  ; ZEXCEPT: in,out,err
  N IOP S IOP="NULL" D ^%ZIS U IO
  D ^ZSY
