@@ -1,5 +1,5 @@
 ZU ;SF/JLI,RWF - For GT.M, TIE ALL TERMINALS TO THIS ROUTINE!! ;2016-12-28  4:04 PM
- ;;8.0;KERNEL;**275,419**;Jul 10, 1995;Build 5
+ ;;8.0;KERNEL;**275,419,10001**;Jul 10, 1995;Build 5
  ; for GT.M for VMS & Unix, version 4.3
  ;
  ;The env var ZINTRRUPT should be set to catch all interrupts.

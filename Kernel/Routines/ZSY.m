@@ -1,5 +1,5 @@
-ZSY	;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2016-12-28  4:25 PM
- ;;8.0;KERNEL;**349**;Jul 10, 1995;Build 2
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2016-12-28  4:25 PM
+ ;;8.0;KERNEL;**349,10001**;Jul 10, 1995;Build 2
  ;GT.M/VA %SY utility - status display
  ;From the top just show by PID
  N IMAGE,MODE
@@ -19,16 +19,16 @@ JOBEXAM(%ZPOS) ; [Called by ^ZU]
  I $G(^XUTL("XUSYS",$J,"CMD"))="HALT" D H2^XUSCLEAN G HALT^ZU
  Q 1
  ;
-QUERY	N IMAGE,MODE,X
+QUERY N IMAGE,MODE,X
  L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
  S X=$$ASK W ! I X=-1 L -^XUTL("XUSYS","COMMAND") Q
  S IMAGE=$P(X,"~",2),MODE=+X D WORK
  Q
-IMAGE	N IMAGE,MODE
+IMAGE N IMAGE,MODE
  L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
  S IMAGE=1,MODE=0 D WORK
  Q
-WORK	;Main driver, Will release lock
+WORK ;Main driver, Will release lock
  N NOPRIV,LOCK,PID,ACCESS,USERS,CTIME,GROUP,JTYPE,LTIME,MEMBER,PROCID
  N TNAME,UNAME,INAME,I,SORT,OLDPRIV,TAB
  N $ES,$ET,STATE,%PS,RTN,%OS,RETVAL,%T,SYSNAME,OLDINT,DONE
@@ -56,29 +56,29 @@ WORK	;Main driver, Will release lock
  I NOPRIV W !,"Insufficient privileges to examine ",NOPRIV," process",$S(NOPRIV>1:"es.",1:"."),!
  ;
  ;
-EXIT	;
+EXIT ;
  L -^XUTL("XUSYS","COMMAND") ;Release lock and let others in
  I $L($G(OLDINT)) S $ZINTERRUPT=OLDINT
  U $P:CTRAP=""
  Q
  ;
-ERR	;
+ERR ;
  U $P W !,$P($ZS,",",2,99),!
  D EXIT
  Q
  ;
-LW	;Lock wait
+LW ;Lock wait
  W !,"Someone else is running the System status now."
  Q
  ;
-HEADER	;Display Header
+HEADER ;Display Header
  W # S ($X,$Y)=0
  S TAB(1)=9,TAB(2)=25,TAB(3)=29,TAB(4)=38,TAB(5)=57,TAB(6)=66
  W !,"GT.M Mumps users on ",$$DATETIME($H),!
  W !,"Proc. id",?TAB(1),"Proc. name",?TAB(2),"PS",?TAB(3),"Device",?TAB(4),"Routine",?TAB(5),"MODE",?TAB(6),"CPU time"
  W !,"--------",?TAB(1),"---------------",?TAB(2),"---",?TAB(3),"--------",?TAB(4),"--------",?TAB(5),"-------",?TAB(6)
  Q
-USHOW	;Display job info, sorted by pid
+USHOW ;Display job info, sorted by pid
  N SI,X,EXIT,DEV
  S SI="",EXIT=0
  F  S SI=$ORDER(SORT(SI)) Q:SI=""!EXIT  F I=1:1:SORT(SI) D  Q:EXIT
@@ -99,7 +99,7 @@ USHOW	;Display job info, sorted by pid
  .. I X'[TNAME S DEV(DI)=X
  . S DI=0 F  S DI=$O(DEV(DI)) Q:DI'>0  W !,?TAB(3),$E(DEV(DI),1,79-$X)
  Q
-ISHOW	;Show process sorted by IMAGE
+ISHOW ;Show process sorted by IMAGE
  N SI,X
  S INAME="",EXIT=0
  F  S INAME=$ORDER(SORT(INAME)) Q:INAME=""!EXIT  D
@@ -116,10 +116,10 @@ ISHOW	;Show process sorted by IMAGE
  . W !
  Q
  ;
-DATETIME(HOROLOG)	;
+DATETIME(HOROLOG) ;
  Q $ZDATE(HOROLOG,"DD-MON-YY 24:60:SS","Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec")
  ;
-ASK()	;Ask sort item
+ASK() ;Ask sort item
  I $D(%utAnswer) Q %utAnswer
  N RES,X,GROUP
  S RES=0,GROUP=2
@@ -129,7 +129,7 @@ ASK()	;Ask sort item
  S X=X-1,RES=(X#GROUP)_"~"_(X\GROUP)
  Q RES
  ;
-UNIX	;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
+UNIX ;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  N %LINE,%TEXT,%I,U,%J,STATE,$ET,$ES
  S $ET="D UERR^ZSY"
  S %I=$I,U="^"
@@ -152,12 +152,12 @@ UNIX	;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  . U %I C "ps"
  Q
  ;
-UERR	;Linux Error
+UERR ;Linux Error
  N ZE S ZE=$ZS,$EC="" U $P
  ZSHOW "*"
  Q  ;halt
  ;
-JOBSET	;Get data from a Linux job
+JOBSET ;Get data from a Linux job
  S (INAME,UNAME,PS,TNAME,JTYPE,CTIME,LTIME,RTN)=""
  S (%J,PID,PROCID)=$P(%LINE,U)
  S TNAME=$P(%LINE,U,2) S:TNAME="?" TNAME="" ; TTY, ? if none

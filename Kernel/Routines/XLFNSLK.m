@@ -1,5 +1,5 @@
 XLFNSLK ;ISF/RWF,ISD/HGW - Calling a DNS server for name lookup ;12/08/15  12:44
- ;;8.0;KERNEL;**142,151,425,638,659**;Jul 10, 1995
+ ;;8.0;KERNEL;**142,151,425,638,659,10001**;Jul 10, 1995
  ;Per VA Directive 6402, this routine should not be modified.
  ;
  Q

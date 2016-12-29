@@ -1,5 +1,5 @@
 %ZOSV2 ;ISF/RWF,FIS/KSB,VEN/SMH - More GT.M support routines ;2016-12-26  2:48 PM
- ;;8.0;KERNEL;**275,425**;Jul 10, 1995;Build 18
+ ;;8.0;KERNEL;**275,425,10001**;Jul 10, 1995;Build 18
  Q
  ;SAVE: DIE open array reference.
  ;      XCN is the starting value to $O from.
