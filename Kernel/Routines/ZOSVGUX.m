@@ -1,4 +1,4 @@
-%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-27  1:10 PM
+%ZOSV ;SFISC/AC,PUG/TOAD,HOU/DHW - View commands & special functions. ;2016-12-28  4:58 PM
  ;;8.0;KERNEL;**275,425,499**;Jul 10, 1995;Build 14
  ;
 ACTJ() ; # active jobs
@@ -93,6 +93,7 @@ PRGMODE ;Drop into direct mode
  S X="" X ^%ZOSF("EOFF") R:ZTPAC]"" !,"PAC: ",X:60 D LC^XUS X ^%ZOSF("EON") I X'=ZTPAC W "??",$C(7) Q
  N XMB,XMTEXT,XMY S XMB="XUPROGMODE",XMB(1)=DUZ,XMB(2)=$I D ^XMB:$L($T(^XMB)) D BYE^XUSCLEAN K ZTPAC,X,XMB
  D UCI S XUCI=Y D PRGM^ZUA
+ I $D(%ut) QUIT
  F  BREAK
  HALT
  ;
@@ -242,7 +243,7 @@ DEVOPN ;List of Devices opened.  Linux only
  N %I,%X,%Y
  ZSHOW "D":%Y
  S %I=0,Y="",%X=""
- F  S %I=$O(%Y("D",%I)) Q:'%I  S Y=Y_%X_$P(%Y("D",%I)," "),%X=","
+ F  S %I=$O(%Y("D",%I)) Q:'%I  I %Y("D",%I)'["CLOSED" S Y=Y_%X_$P(%Y("D",%I)," "),%X=","
  Q
  ;
 RETURN(%COMMAND,JUSTSTATUS) ; [Public] execute a shell command 
