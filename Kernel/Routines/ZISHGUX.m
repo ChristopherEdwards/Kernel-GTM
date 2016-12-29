@@ -1,5 +1,5 @@
-%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2016-12-28  4:48 PM
- ;;8.0;KERNEL;**275,306,385,524**;Jul 10, 1995;Build 12
+%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2016-12-29  10:10 AM
+ ;;8.0;KERNEL;**275,306,385,524,10001**;Jul 10, 1995;Build 12
  ; for GT.M for Unix/VMS, version 4.3
  ;
 OPEN(X1,X2,X3,X4,X5,X6) ;SR. Open file
@@ -93,12 +93,16 @@ MV(X1,X2,Y1,Y2) ;ef,SR. Rename a fl
  ;S Y=$$MV^ZISH("/dir/","fl","/dir/","fl")
  N %Z,%C
  S X1=$$DEFDIR($G(X1)),Y1=$$DEFDIR($G(Y1))
- S %C=$S($ZV["VMS":"RENAME ",1:"mv ")
+ S %C="mv "
  ;Pbv or qit
  I (X2="")!(Y2="") Q 0
- ZSYSTEM %C_X1_X2_" "_Y1_Y2 ;Use system rename
+ N % S %=$$RETURN^%ZOSV(%C_X1_X2_" "_Y1_Y2)
  S %Z=$ZSEARCH(Y1_Y2)
  Q $L(%Z)>0
+ ;
+CD(D) ; [Public] Change Directory
+ S $ZD=D
+ QUIT
  ;
 PWD() ;ef,SR. Print working directory
  Q $ZDIRECTORY
