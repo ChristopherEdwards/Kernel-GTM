@@ -1,16 +1,20 @@
-ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-28  3:24 PM
- ;;1.0;UNIT TEST;;Aug 28, 2013;Build 1
+ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-29  4:25 PM
+ ;;8.0;KERNEL;**10001**;Aug 28, 2013;Build 1
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
  I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",3)
  Q
+ ;
+STARTUP ;
+ D DUZ^XUP(.5)
+ QUIT
  ;
 COV ; [Coverage of Unit Tests]
  N NMSPS
  S (NMSPS("%ZOSV*"),NMSPS("%ZISH"),NMSPS("ZTMGRSET"))=""
  S (NMSPS("XLFNSLK"),NMSPS("XLFIPV"),NMSPS("XUSHSH"),NMSPS("XQ82"))=""
  S (NMSPS("ZSY"))=""
- D COV^%ut1(.NMSPS,"D ^ZZUTZOSV",2)
+ D COV^%ut1(.NMSPS,"D ^ZZUTZOSV",1)
  QUIT
  ;
  ;
@@ -248,8 +252,9 @@ BAUD ; @TEST BAUD NOOP
  QUIT
  ;
 SETTRM ; @TEST Set Terminators
- D SETTRM^%ZOSV($C(10,13))
- D SUCCEED^%ut
+ N % S %=$$SETTRM^%ZOSV($C(10,13))
+ D CHKEQ^%ut(%,1)
+ X ^%ZOSF("TRMON") ; Reset terminators
  QUIT
  ;
 LGR ; @TEST Last Global Reference
@@ -338,11 +343,11 @@ NSLOOKUP ; @TEST Test DNS Utilities
  D CHKTF^%ut(%="")
  ;
  ; FORWARD DNS
- ; dig doesn't return an IPV6 localhost address.
+ ; dig may fail with localhost lookup
  N IPV6 S IPV6=$$VERSION^XLFIPV
  I IPV6 D CHKTF^%ut($$ADDRESS^XLFNSLK("localhost")["0000:0000:0000:0000:0000:0000:0000:000") I 1
  E  D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"127.0.0.1")
- D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost","A"),"127.0.0.1")
+ D CHKTF^%ut(($$ADDRESS^XLFNSLK("localhost","A")["127.0.0.1")!($$ADDRESS^XLFNSLK("localhost","A")["0.0.0.0"))
  D CHKTF^%ut($$ADDRESS^XLFNSLK("localhost","AAAA")["0000:0000:0000:0000:0000:0000:0000:000")
  QUIT
  ;
@@ -455,7 +460,7 @@ OPENBLOV ; @TEST Write and Read a variable record file
  W !
  D CHKTF^%ut($L(X)=61,"record size isn't correct")
  QUIT
-
+ 
 OPENDF ; @TEST Open File from Default HFS Directory
  ; Uses the file from the last test.
  N POP
@@ -548,6 +553,7 @@ LIST ; @TEST LIST^%ZISH
  N % S %=$$LIST^%ZISH(PATH,$NA(%ARR),$NA(%RET))
  D CHKTF^%ut('%,3)
  ;
+ I $ZPARSE("$vista_home/r/")="" QUIT
  N %ARR S %ARR("*")=""
  N %RET
  N % S %=$$LIST^%ZISH("$vista_home/r/",$NA(%ARR),$NA(%RET))
@@ -566,7 +572,7 @@ MV ; @TEST MV^%ZISH
  W "LINE1",!
  W "LINE2",!
  D CLOSE^%ZISH
- D MV^%ZISH(,"test_for_sam2.txt",,"test_for_sam3.txt")
+ N % S %=$$MV^%ZISH(,"test_for_sam2.txt",,"test_for_sam3.txt")
  D OPEN^%ZISH(,,"test_for_sam3.txt","R")
  I POP D FAIL^%ut("Couldn't open file") QUIT
  E  D SUCCEED^%ut
@@ -674,7 +680,8 @@ DEL ; @TEST Delete files we created in the tests
  S FULLPATH=DIR_FN
  N % S %=$$RETURN^%ZOSV(STATCMD_FULLPATH,1)
  D CHKTF^%ut(%=0,2)
- D DEL^%ZISH(DIR,$NA(DELARRAY))
+ N % S %=$$DEL^%ZISH(DIR,$NA(DELARRAY))
+ D CHKTF^%ut(%=1,2.5)
  S FULLPATH=DIR_"test-for-sam.txt"
  N % S %=$$RETURN^%ZOSV(STATCMD_FULLPATH,1)
  D CHKTF^%ut(%'=0,3)

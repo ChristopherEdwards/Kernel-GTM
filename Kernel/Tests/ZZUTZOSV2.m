@@ -1,8 +1,14 @@
-ZZUTZOSV2 ; VEN/SMH - Unit Tests for GT.M VistA Port;2016-12-26  4:41 PM
+ZZUTZOSV2 ; VEN/SMH - Unit Tests for GT.M VistA Port;2016-12-29  10:50 AM
  ;;8.0;KERNEL;**10001**;
  ;
  ; (c) Sam Habiel 2016
  ; Licensed under Apache 2 (https://www.apache.org/licenses/LICENSE-2.0)
+ ;
+STARTUP QUIT
+ ;
+SHUTDOWN ; 
+ S $ZSOURCE="ZZUTZOSV"
+ QUIT
  ;
 NOOP ; @TEST Top doesn't do anything.
  D ^%ZOSV2
@@ -60,12 +66,6 @@ LOAD ; @TEST Load Routine
  K ^TMP($J)
  S DIF=$$OREF^DILF($NA(^TMP($J,"ROU")))
  D LOAD^%ZOSV2("KBANHELLO")
- D CHKTF^%ut(^TMP($J,"ROU",1,0)["KBANHELLO")
- D CHKTF^%ut(^TMP($J,"ROU",4,0)["QUIT")
- ;
- K ^TMP($J)
- S DIF=$$OREF^DILF($NA(^TMP($J,"ROU")))
- D LOAD2^%ZOSV2("KBANHELLO")
  D CHKTF^%ut(^TMP($J,"ROU",1,0)["KBANHELLO")
  D CHKTF^%ut(^TMP($J,"ROU",4,0)["QUIT")
  QUIT
