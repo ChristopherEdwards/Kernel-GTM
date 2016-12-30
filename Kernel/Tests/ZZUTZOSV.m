@@ -203,7 +203,7 @@ VERSION ; @TEST VERSION
  N OS S OS=$$VERSION^%ZOSV(1)
  D CHKTF^%ut(V0,"Must be positive")
  D CHKTF^%ut($L(V0,"-")=2,"Must be in xx.xxxx")
- D CHKTF^%ut(OS["nux"!(OS["nix")!(OS["BSD")!(OS["Darwin"))
+ D CHKTF^%ut(OS["nux"!(OS["nix")!(OS["BSD")!(OS["Darwin")!(OS["CYGWIN"))
  QUIT
  ;
 SID ; @TEST System ID
@@ -346,12 +346,13 @@ NSLOOKUP ; @TEST Test DNS Utilities
  ; dig may fail with localhost lookup
  N IPV6 S IPV6=$$VERSION^XLFIPV
  I IPV6 D CHKTF^%ut($$ADDRESS^XLFNSLK("localhost")["0000:0000:0000:0000:0000:0000:0000:000") I 1
- E  D CHKEQ^%ut($$ADDRESS^XLFNSLK("localhost"),"127.0.0.1")
+ E  D CHKTF^%ut(($$ADDRESS^XLFNSLK("localhost")["127.0.0.1")!($$ADDRESS^XLFNSLK("localhost")["0.0.0.0"))
  D CHKTF^%ut(($$ADDRESS^XLFNSLK("localhost","A")["127.0.0.1")!($$ADDRESS^XLFNSLK("localhost","A")["0.0.0.0"))
  D CHKTF^%ut($$ADDRESS^XLFNSLK("localhost","AAAA")["0000:0000:0000:0000:0000:0000:0000:000")
  QUIT
  ;
 IPV6 ; @TEST Test GT.M support for IPV6
+ I $ZV["CYGWIN" QUIT  ; We run Cygwin on IPv4 only as Cygwin doesn't support between the two as well as Linux
  D CHKEQ^%ut($$VERSION^XLFIPV(),1)
  QUIT
  ;
@@ -362,6 +363,7 @@ SSVNJOB ; @TEST Replacement for ^$JOB in XQ82
  N CHILDPID S CHILDPID=$ZJOB
  L -SSVNJOB
  H .01 ; This must be big enough to let your computer start the job
+ I $ZV["CYGWIN" H 1 ; Wish I knew why...
  L +SSVNJOB
  L
  D CHKTF^%ut($D(^TMP(CHILDPID)))
@@ -759,6 +761,7 @@ RSAENC ; @TEST Test RSA Encryption
  ; So, for now, let's just disable this check on Darwin; I don't have time
  ; for this shit.
  I $$VERSION^%ZOSV(1)["Darwin" QUIT
+ I $$VERSION^%ZOSV(1)["CYGWIN" QUIT
  ;
  N %CMD
  S %CMD="openssl genrsa -aes128 -passout pass:monkey1234 -out /tmp/mycert.key 2048"
