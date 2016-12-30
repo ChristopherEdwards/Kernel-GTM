@@ -45,7 +45,7 @@ WORK ;Main driver, Will release lock
  U $P:CTRAP=$C(3)
  ;
  ;Go get the data
- D UNIX ; OSEHRA/SMH - Cygwin may be different, Now we support Linux and Mac
+ D UNIX
  ;
  ;Now show the results
  I USERS D
@@ -144,6 +144,7 @@ UNIX ;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  f j=1:1 q:'$d(procgrps(j))  d
  . I $ZV["Linux" S CMD="ps o pid,tty,stat,time,cmd -p"_procgrps(j)
  . I $ZV["Darwin" S CMD="ps o pid,tty,stat,time,args -p"_procgrps(j)
+ . I $ZV["CYGWIN" S CMD="for p in "_procgrps(j)_"; do ps -p $p; done | awk '{print $1"" ""$5"" n/a ""$7"" ""$8"" n/a ""}'"
  . O "ps":(SHELL="/bin/sh":COMMAND=CMD:READONLY)::"PIPE" U "ps"
  . F  R %TEXT Q:$ZEO  D
  .. S %LINE=$$VPE(%TEXT," ",U) ; parse each line of the ps output
@@ -196,6 +197,7 @@ VPE(%OLDSTR,%OLDDEL,%NEWDEL) ; $PIECE extract based on variable length delimiter
 UNIXLSOF(procs) ; [Public] - Get all processes accessing THIS database (only!)
  ; (return) .procs(n)=unix process number
  n %cmd s %cmd="lsof -t "_$view("gvfile","default")
+ i $ZV["CYGWIN" s %cmd="ps -a | grep mumps | grep -v grep | awk '{print $1}'"
  n oldio s oldio=$io
  o "lsof":(shell="/bin/bash":command=%cmd)::"pipe"
  u "lsof"
@@ -207,6 +209,7 @@ INTRPT(%J) ; [Public] Send mupip interrupt (currently SIGUSR1) using $gtm_dist/m
  N SIGUSR1
  I $ZV["Linux" S SIGUSR1=10
  I $ZV["Darwin" S SIGUSR1=30
+ I $ZV["CYGWIN" S SIGUSR1=30
  N % S %=$ZSIGPROC(%J,SIGUSR1)
  QUIT
  ;
@@ -214,6 +217,7 @@ INTRPTALL(procs) ; [Public] Send mupip interrupt to every single database proces
  N SIGUSR1
  I $ZV["Linux" S SIGUSR1=10
  I $ZV["Darwin" S SIGUSR1=30
+ I $ZV["CYGWIN" S SIGUSR1=30
  D UNIXLSOF(.procs)
  N i,% F i=1:1 q:'$d(procs(i))  S %=$ZSIGPROC(procs(i),SIGUSR1)
  QUIT
