@@ -21,6 +21,9 @@ ACTJ() ; # active jobs
  .. S ^XUTL("XUSYS","CNT")=LINE
  .. U IO C "LSOF"
  . ;
+ . I $$UP^XLFSTR($ZV)["CYGWIN" D
+ .. S ^XUTL("XUSYS","CNT")=+$$RETURN^%ZOSV("ps -as | grep mumps | grep -v grep | wc -l")
+ . ;
  . S ^XUTL("XUSYS","CNT","SEC")=$$SEC^XLFDT($H)
  Q ^XUTL("XUSYS","CNT")
  ;
