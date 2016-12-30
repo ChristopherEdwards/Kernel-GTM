@@ -16,7 +16,9 @@ SAVE(RN) ;Save a routine
 DEL(RN) ; Delete Routine, VEN/SMH
  ; Input: Routine Name by Value
  ; Output: None
+ N CNT S CNT=0
 DELLOOP ; Loop entry point
+ I CNT>5 S $EC=",U-DELETION-FAILED,"
  N %ZR ; Output from GT.M %RSEL
  N %S,%O ; Source directory, object directory 
  ; 
@@ -35,11 +37,15 @@ DELLOOP ; Loop entry point
  . E  Q
  . ZLINK RN  ; Tell this process that that's the new routine. Other proceses that have the object linked be notified using the RELINK_CTL file.
  . C %S_RN_".m":(delete)  ; now delete
+ . I CNT>3 N % S %=$$RETURN^%ZOSV("rm -r "_%S_RN_".m")
  ;
  I $L(%O) D  ; If object code present?
  . O %O_RN_".o":(readonly):0
  . E  Q
  . C %O_RN_".o":(delete)
+ . I CNT>3 N % S %=$$RETURN^%ZOSV("rm -r "_%O_RN_".o")
+ S CNT=CNT+1
+ ;
  G DELLOOP
  ;
  ;
