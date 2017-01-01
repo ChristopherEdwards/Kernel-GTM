@@ -514,7 +514,7 @@ OPENAPP ; @TEST Open with appending
  U IO
  W "TEST 2",!
  D CLOSE^%ZISH
- D CHKTF^%ut($$RETURN^%ZOSV("wc -l "_$$DEFDIR^%ZISH()_"test-for-sam.txt | cut -d' ' -f1")=2)
+ D CHKTF^%ut($$RETURN^%ZOSV("wc -l "_$$DEFDIR^%ZISH()_"test-for-sam.txt | xargs | cut -d' ' -f1")=2)
  QUIT
  ;
 PWD ; @TEST Get Current Working Directory
