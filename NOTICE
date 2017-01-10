@@ -1,0 +1,24 @@
+Offical Submitter: Sam Habiel
+Other authors who contributed code: Christopher Edwards (IPv6, Unit Tests) and
+KS Bhaskar (various Kernel Routines).
+
+License for any modified code is Apache 2.0.
+License for all unmodifed VA code is public domain.
+
+Full code provenance:
+[+] XLFNSLK - FOIA Code edited by Chrisopher Edwards for GT.M support (HOST, ADDRESS).
+[+] XLFIPV  - FOIA Code edited by Chrisopher Edwards for GT.M support (VERSION).
+[+] XQ82    - FOIA Code edited by Sam Habiel for GT.M support. (DEAD, CHECK).
+[+] XUSHSH  - All code written by Sam Habiel.
+[+] ZISHGUX - FOIA Code; major portions edited by Sam Habiel (OPEN, DEL1, MV, CD, PWD, DEFDIR, FTG, READNXT, MAXREC, MGTF).
+[+] ZISTCPS - FOIA Code: MTL Listener by Sam Habiel (LGTM, GTMLNCH).
+[+] ZOSV2GTM - All EPs except SUM and SUM1 written by Sam Habiel.
+[+] ZOSVGUX  - FOIA Code but almost entirely re-written by Sam Habiel, KS Bhaskar, Christopher Edwards.
+[+] ZSY      - Original routine part of unreleased patch XU*8.0*349; Enhancements by KS Bhaskar and Sam Habiel. 
+[+] ZTLOAD1  - TSTART/TCOMMIT removed; Christopher Edwards.
+[+] ZTM6     - TSTART/TCOMMIT removed; Christopher Edwards.
+[+] ZTMGRSET  - Various changes throughout the routine. Recode of COPY and R entry points (KS Bhaskar, Sam Habiel).
+[+] ZUGTM     - FOIA Code, modified by Sam Habiel (JOBEXAM).
+[+] ZZUTZOSV  - All code written by Chistopher Edwards and Sam Habiel.
+[+] ZZUTZOSV2 - All code written by Sam Habiel.
+[+] XU810001 - All code written by Sam Habiel.
