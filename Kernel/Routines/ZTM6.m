@@ -1,6 +1,8 @@
-%ZTM6 ;SEA/RDS-TaskMan: Manager, Part 8 (Load Balancing) ; 3/6/14 1:57P
+%ZTM6 ;SEA/RDS-TaskMan: Manager, Part 8 (Load Balancing) ;2017-01-09  3:46 PM
  ;;8.0;KERNEL;**23,118,127,136,355,446,10001**;JUL 10, 1995;Build 35
- ;Per VHA Directive 2004-038, this routine should not be modified.
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs
+ ; Transactions removed by Christopher Edwards 2014.
  ;
 BALANCE ;CHECK^%ZTM--determine whether cpu should wait for balance
  ;Return ZTOVERLD =1 if need to wait, 0 to run

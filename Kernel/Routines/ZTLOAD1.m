@@ -1,6 +1,8 @@
-%ZTLOAD1 ;SEA/RDS-TaskMan: P I: Queue ; 3/6/14 1:57P
+%ZTLOAD1 ;SEA/RDS-TaskMan: P I: Queue ;2017-01-09  3:45 PM
  ;;8.0;KERNEL;**112,118,127,162,275,363,409,415,425,446,10001**;Jul 10, 1995;Build 35
- ;Per VHA Directive 2004-038, this routine should not be modified.
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs
+ ; Transactions removed by Christopher Edwards 2014.
  ;
 GET ;get task data
  N %X,%Y,X,Y,X1,ZT,ZTC1,ZTC2,ZTA1,ZTA4,ZTA5,ZTINC,ZTGOT,ZTC34P

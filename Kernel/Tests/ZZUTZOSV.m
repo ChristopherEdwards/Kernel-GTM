@@ -1,5 +1,8 @@
-ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2016-12-29  4:25 PM
+ZZUTZOSV ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2017-01-09  3:56 PM
  ;;8.0;KERNEL;**10001**;Aug 28, 2013;Build 1
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Authored by Sam Habiel & Christopher Edwards 2014-2016.
+ ;
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
  I $T(EN^%ut)'="" D EN^%ut("ZZUTZOSV",3)
@@ -9,7 +12,7 @@ STARTUP ;
  D DUZ^XUP(.5)
  QUIT
  ;
-COV ; [Coverage of Unit Tests]
+COV ; [Coverage of Unit Tests] NB: This uses an unpublished copy of M-Unit to perform multiple namespace coverage.
  N NMSPS
  S (NMSPS("%ZOSV*"),NMSPS("%ZISH"),NMSPS("ZTMGRSET"))=""
  S (NMSPS("XLFNSLK"),NMSPS("XLFIPV"),NMSPS("XUSHSH"),NMSPS("XQ82"))=""

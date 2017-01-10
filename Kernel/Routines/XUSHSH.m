@@ -1,8 +1,11 @@
-XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2016-12-26  4:44 PM
+XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2017-01-09  3:25 PM
  ;;8.0;KERNEL;**655,659,10001**;Jul 10, 1995;Build 22
  ;Per VA Directive 6402, this routine should not be modified.
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs but completely redacted.
+ ; All EPs authored by Sam Habiel 2016.
  ;
- ; Written by VEN/SMH - Verified against original code to return same result.
+ ; Written by VEN/SMH - Verified against Cache code to return same result.
  ;;
  ;ZEXCEPT: X ;Returned global value when called as an extrinsic subroutine.
  S X=$$EN(X)
@@ -46,7 +49,7 @@ SHAHASH(N,X,FLAG) ;One-Way Hash Utility, IA #6189
  ; shasum has the -a argument:
  ; -a, --algorithm   1 (default), 224, 256, 384, 512, 512224, 512256
  N ALGO S ALGO=$S(N=160:1,1:N) ; Translate for shasum command
- N %COMMAND
+ N %COMMAND,Y
  S %COMMAND="shasum -t -a "_ALGO ; -t = --text
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
  U "COMM" W X S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
@@ -64,7 +67,7 @@ SHAHASH(N,X,FLAG) ;One-Way Hash Utility, IA #6189
  Q B
  ;
 B64ENCD(X) ;Base 64 Encode, IA #6189
- N %COMMAND
+ N %COMMAND,Y
  S %COMMAND="base64"
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
  U "COMM" W X S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
@@ -73,7 +76,7 @@ B64ENCD(X) ;Base 64 Encode, IA #6189
  Q Y
  ;
 B64DECD(X) ;Base 64 Decode, IA #6189
- N %COMMAND
+ N %COMMAND,Y
  S %COMMAND="base64 -d"
  I $G(^%ZOSF("OS"))["GT.M",$$VERSION^%ZOSV(1)["Darwin" S %COMMAND="base64 -D"
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
@@ -109,6 +112,7 @@ RSAENCR(TEXT,CERT,CAFILE,CRLFILE,ENC) ;RSA Encrypt, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe" ; THESE PARAMETERS ARE IMPORTANT! I kept fiddling until I got them.
  U "COMM" W TEXT S $X=0 W /EOF
  N OUT
+ N Y
  F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
  U IO C "COMM"
  Q OUT
@@ -130,6 +134,7 @@ RSADECR(TEXT,KEY,PWD,ENC) ;RSA Decrypt, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF ; $X of 0 prevents the code from writing LF to the stream
  N OUT
+ N Y
  F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
  U IO C "COMM"
  Q OUT
@@ -143,6 +148,7 @@ AESENCR(TEXT,KEY,IV) ;AES Encrypt, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF
  N OUT
+ N Y
  F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
  U IO C "COMM"
  Q OUT
@@ -152,6 +158,7 @@ AESDECR(TEXT,KEY,IV) ;AES Decrypt, IA #6189
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF
  N OUT
+ N Y
  F  R Y:1 S OUT=$G(OUT)_Y Q:$ZEOF
  U IO C "COMM"
  Q OUT

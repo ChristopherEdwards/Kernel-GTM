@@ -1,5 +1,10 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2016-12-28  4:25 PM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2017-01-09  3:44 PM
  ;;8.0;KERNEL;**349,10001**;Jul 10, 1995;Build 2
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
+ ; Rewritten by KS Bhaskar and Sam Habiel 2005-2015
+ ; Sam: JOBEXAM, WORK, USHOW, UNIX, UNIXLSOF, INTRPT, INTRPTALL, HALTALL
+ ; Bhaskar provided pipe implementations of various commands.
  ;GT.M/VA %SY utility - status display
  ;From the top just show by PID
  N IMAGE,MODE

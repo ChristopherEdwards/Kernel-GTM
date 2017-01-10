@@ -1,6 +1,8 @@
-ZU ;SF/JLI,RWF - For GT.M, TIE ALL TERMINALS TO THIS ROUTINE!! ;2016-12-28  4:04 PM
+ZU ;SF/JLI,RWF - For GT.M, TIE ALL TERMINALS TO THIS ROUTINE!! ;2017-01-09  3:51 PM
  ;;8.0;KERNEL;**275,419,10001**;Jul 10, 1995;Build 5
- ; for GT.M for VMS & Unix, version 4.3
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs
+ ; EP JOBEXAM rewritten by Sam Habiel 2016.
  ;
  ;The env var ZINTRRUPT should be set to catch all interrupts.
 EN ;See that escape processing is off, Conflict with Screenman

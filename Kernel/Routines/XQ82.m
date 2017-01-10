@@ -1,6 +1,8 @@
-XQ82 ;SF-ISC.SEA/JLI - CLEAN OLD $JOB DATA OUT OF XUTL("XQ", & OTHERS ;12/03/14  08:32
+XQ82 ;SF-ISC.SEA/JLI - CLEAN OLD $JOB DATA OUT OF XUTL("XQ", & OTHERS ;2017-01-09  3:27 PM
  ;;8.0;KERNEL;**59,67,157,258,312,353,542,554,638,10001**;Jul 10, 1995;Build 15
- ;Per VA Directive 6402, this routine should not be modified.
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs
+ ; EPs DEAD and CHECK GT.M support by Sam Habiel 2016.
  ;
  ;Make sure that can run from a DCL script
  N A,X,%DT,Y,J,K,DDATE,HDATE,HJOB,HPID3,XQOS,XQVND

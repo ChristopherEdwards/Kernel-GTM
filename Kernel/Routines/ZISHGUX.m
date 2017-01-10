@@ -1,6 +1,10 @@
-%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2016-12-29  10:10 AM
- ;;8.0;KERNEL;**275,306,385,524,10001**;Jul 10, 1995;Build 12
- ; for GT.M for Unix/VMS, version 4.3
+%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2017-01-09  3:23 PM
+ ;;8.0;KERNEL;**275,306,385,524,10001**;Jul 10, 1995;
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs
+ ; EPs OPEN,DEL1,CD,PWD,MAXREC authored by Sam Habiel 2016.
+ ; EPs MV,DEFDIR,FTG,READNXT,MGTF have bugs fixed by Sam Habiel 2016.
+ ; 
  ;
 OPEN(X1,X2,X3,X4,X5,X6) ;SR. Open file
  ;D OPEN^%ZISH([handlename],[directory],filename,[accessmode],[recsize])

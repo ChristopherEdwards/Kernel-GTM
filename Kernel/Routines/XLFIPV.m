@@ -1,6 +1,8 @@
-XLFIPV ;ISD/HGW - IPv4 and IPv6 Utilities ;06/17/14  08:20
+XLFIPV ;ISD/HGW - IPv4 and IPv6 Utilities ;2017-01-09  3:29 PM
  ;;8.0;KERNEL;**605,638,10001**;Aug 6, 2012;Build 15
- ;Per VA Directive 6402, this routine should not be modified.
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs
+ ; EP VERSION GT.M Support authored by Christopher Edwards 2016.
  Q
  ;
 VALIDATE(IP) ; EXTRINSIC. ICR #5844 (supported)

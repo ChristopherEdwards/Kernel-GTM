@@ -1,5 +1,8 @@
-%ZISTCPS ;ISF/RWF - DEVICE HANDLER TCP/IP SERVER CALLS ;2016-12-22  12:39 PM
+%ZISTCPS ;ISF/RWF - DEVICE HANDLER TCP/IP SERVER CALLS ;2017-01-09  3:19 PM
  ;;8.0;KERNEL;**78,118,127,225,275,388,10001**;Jul 10, 1995
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Original Routine authored by Department of Veterans Affairs
+ ; EPs LGTM and GTMLNCH authored by Sam Habiel 2016.
  Q
  ;
 CLOSE ;Close and reset

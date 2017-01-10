@@ -1,8 +1,7 @@
-ZZUTZOSV2 ; VEN/SMH - Unit Tests for GT.M VistA Port;2016-12-29  10:50 AM
+ZZUTZOSV2 ; VEN/SMH - Unit Tests for GT.M VistA Port;2017-01-09  3:56 PM
  ;;8.0;KERNEL;**10001**;
- ;
- ; (c) Sam Habiel 2016
- ; Licensed under Apache 2 (https://www.apache.org/licenses/LICENSE-2.0)
+ ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
+ ; Authored by Sam Habiel 2016.
  ;
 STARTUP QUIT
  ;
