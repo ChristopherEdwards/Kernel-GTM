@@ -1,5 +1,5 @@
 ZTMGRSET ;SF/RWF,PUG/TOAD - SET UP THE MGR ACCOUNT FOR THE SYSTEM ;2017-01-09  3:49 PM
- ;;8.0;KERNEL;**34,36,69,94,121,127,136,191,275,355,446,584,10001**;JUL 10, 1995;Build 6
+ ;;8.0;KERNEL;**34,36,69,94,121,127,136,191,275,355,446,584,10001**;JUL 10, 1995;Build 8
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine authored by Department of Veterans Affairs
  ; Sam Habiel made tiny changes throughout routine (Max Patch > 999 now, ZISHGUX
@@ -171,8 +171,10 @@ COPY(FROM,TO) ;
  I ZTOS'=7,ZTOS'=8 X "ZL @FROM ZS @TO" Q
  ;For GT.M below
  N IO,PATH,COPY,CMD S PATH=$$R,IO=$IO
- S FROM="^"_FROM,TO=PATH_$TR(TO,"%","_")_".m"
- O TO:NEWVERSION U TO ZPRINT @FROM U IO C TO
+ S TO=$TR(TO,"%","_")
+ N FULLTO S FULLTO=PATH_TO_".m"
+ S FROM="^"_FROM
+ O FULLTO:NEWVERSION U FULLTO ZPRINT @FROM U IO C FULLTO
  N OLDSOURCE S OLDSOURCE=$ZSOURCE ; Don't change my zlink history
  ZLINK TO:"-nowarning" ; don't print out compile time errors
  S $ZSOURCE=OLDSOURCE ; ditto-1
