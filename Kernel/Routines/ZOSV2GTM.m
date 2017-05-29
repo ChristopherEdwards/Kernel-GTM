@@ -14,7 +14,8 @@ SAVE(RN) ;Save a routine
  O %F:(NEWVERSION:NOWRAP:STREAM) U %F
  F  S XCN=$O(@(DIE_XCN_")")) Q:XCN'>0  S %=@(DIE_XCN_",0)") Q:$E(%,1)="$"  I $E(%)'=";" W %,!
  C %F
- ZLINK RN:"-nowarning"
+ I $G(^%ZOSF("COMPILEWARNING")) ZLINK RN
+ E  ZLINK RN:"-nowarning"
  U %I
  Q
 DEL(RN) ; Delete Routine, VEN/SMH
