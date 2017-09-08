@@ -1,5 +1,5 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2017-01-09  3:44 PM
- ;;8.0;KERNEL;**349,10001**;Jul 10, 1995;Build 2
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2017-08-12  3:19 PM
+ ;;8.0;KERNEL;**349,10001**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
  ; Rewritten by KS Bhaskar and Sam Habiel 2005-2015
@@ -145,7 +145,7 @@ UNIX ;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  n j s j=1
  n i f i=1:1 q:'$d(procs(i))  d
  . s procgrps(j)=$g(procgrps(j))_procs(i)_" "
- . i $l(procgrps(j))>970 s j=j+1 ; Max GT.M pipe len is 1023
+ . i $l(procgrps(j))>220 s j=j+1 ; Max GT.M pipe len is 255
  f j=1:1 q:'$d(procgrps(j))  d
  . I $ZV["Linux" S CMD="ps o pid,tty,stat,time,cmd -p"_procgrps(j)
  . I $ZV["Darwin" S CMD="ps o pid,tty,stat,time,args -p"_procgrps(j)
@@ -201,7 +201,7 @@ VPE(%OLDSTR,%OLDDEL,%NEWDEL) ; $PIECE extract based on variable length delimiter
  ; Sam's entry points
 UNIXLSOF(procs) ; [Public] - Get all processes accessing THIS database (only!)
  ; (return) .procs(n)=unix process number
- n %cmd s %cmd="lsof -t "_$view("gvfile","default")
+ n %cmd s %cmd="lsof -t "_$view("gvfile","DEFAULT")
  i $ZV["CYGWIN" s %cmd="ps -a | grep mumps | grep -v grep | awk '{print $1}'"
  n oldio s oldio=$io
  o "lsof":(shell="/bin/bash":command=%cmd)::"pipe"
@@ -244,3 +244,7 @@ HALTALL ; [Public] Gracefully halt all jobs accessing current database
  N J F J=0:0 S J=$O(^XUTL("XUSYS",J)) Q:'J  D INTRPT(J)
  quit
  ;
+HALTONE(%J) ; [Public] Halt a single process
+ S ^XUTL("XUSYS",%J,"CMD")="HALT"
+ D INTRPT(%J)
+ QUIT
