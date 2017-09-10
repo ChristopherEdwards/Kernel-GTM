@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2017-08-12  3:19 PM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2017-09-10  11:33 AM
  ;;8.0;KERNEL;**349,10001**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -135,7 +135,7 @@ ASK() ;Ask sort item
  Q RES
  ;
 UNIX ;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
- N %LINE,%TEXT,%I,U,%J,STATE,$ET,$ES
+ N %LINE,%TEXT,%I,U,%J,STATE,$ET,$ES,CMD
  S $ET="D UERR^ZSY"
  S %I=$I,U="^"
  n procs
@@ -170,7 +170,11 @@ JOBSET ;Get data from a Linux job
  S PS=$P(%LINE,U,3) ; process STATE
  S PS=$S(PS="D":"lef",PS="R":"com",PS="S":"hib",1:PS)
  S CTIME=$P(%LINE,U,4) ;cpu time
- S JTYPE=$P(%LINE,U,6),ACCESS(JTYPE)=JTYPE
+ N PROCNAME S PROCNAME=$P(%LINE,U,5) ; process name
+ I PROCNAME["/" S PROCNAME=$P(PROCNAME,"/",$L(PROCNAME,"/")) ; get actual image name if path
+ I PROCNAME'="mumps" S JTYPE=PROCNAME ; If not mumps, then make that the job type
+ E  S JTYPE=$P(%LINE,U,6)             ; else, job type is the mumps -dir/-run etc.
+ S ACCESS(JTYPE)=JTYPE
  I $D(^XUTL("XUSYS",%J)) S UNAME=$G(^XUTL("XUSYS",%J,"NM"))
  E  S UNAME="unknown"
  S RTN="" ; Routine, get at display time
@@ -184,7 +188,6 @@ JOBSET ;Get data from a Linux job
  ;
 VPE(%OLDSTR,%OLDDEL,%NEWDEL) ; $PIECE extract based on variable length delimiter
  N %LEN,%PIECE,%NEWSTR
- S %STRING=$G(%STRING)
  S %OLDDEL=$G(%OLDDEL) I %OLDDEL="" S %OLDDEL=" "
  S %LEN=$L(%OLDDEL)
  ; each %OLDDEL-sized chunk of %OLDSTR that might be delimiter
@@ -242,9 +245,26 @@ HALTALL ; [Public] Gracefully halt all jobs accessing current database
  ;
  ; Sayonara
  N J F J=0:0 S J=$O(^XUTL("XUSYS",J)) Q:'J  D INTRPT(J)
+ ;
+ ; Wait
+ H .01
+ ;
+ ; Check that they are all dead. If not, kill it "softly".
+ ; Need to do this for node and java processes that won't respond normally.
+ N J F J=0:0 S J=$O(^XUTL("XUSYS",J)) Q:'J  I $zgetjpi(J,"isprocalive"),J'=$J D KILL(J)
+ ;
  quit
  ;
 HALTONE(%J) ; [Public] Halt a single process
  S ^XUTL("XUSYS",%J,"CMD")="HALT"
  D INTRPT(%J)
+ H .01
+ I $zgetjpi(%J,"isprocalive") D KILL(%J)
  QUIT
+ ;
+KILL(%J) ; [Private] Kill %J
+ n %cmd s %cmd="kill "_%J
+ o "kill":(shell="/bin/sh":command=%cmd)::"pipe"
+ u "kill"
+ c "kill"
+ quit
