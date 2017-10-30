@@ -1,5 +1,5 @@
-XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2017-01-09  3:25 PM
- ;;8.0;KERNEL;**655,659,10001**;Jul 10, 1995;Build 22
+XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2017-10-30  5:11 pm
+ ;;8.0;KERNEL;**655,659,10001**;Jul 10, 1995;Build 15
  ;Per VA Directive 6402, this routine should not be modified.
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine authored by Department of Veterans Affairs but completely redacted.
@@ -45,6 +45,13 @@ SHAHASH(N,X,FLAG) ;One-Way Hash Utility, IA #6189
  ; FLAG -> (Optional) Flag to control format of hash:
  ; - "H" = Hexadecimal (default)
  ; - "B" = Base64 Encoded
+ S FLAG=$G(FLAG,"H")
+ ;
+ ; Capital HASH is return
+ I $G(^%ZOSF("OS"))["OpenM" N HASH D  Q HASH
+ . n hash s hash=$system.Encryption.SHAHash(N,X)
+ . I FLAG="H" S HASH=##class(%xsd.hexBinary).LogicalToXSD(hash)
+ . E  S HASH=$$B64ENCD(hash)
  ;
  ; shasum has the -a argument:
  ; -a, --algorithm   1 (default), 224, 256, 384, 512, 512224, 512256
@@ -67,6 +74,7 @@ SHAHASH(N,X,FLAG) ;One-Way Hash Utility, IA #6189
  Q B
  ;
 B64ENCD(X) ;Base 64 Encode, IA #6189
+ I $G(^%ZOSF("OS"))["OpenM" Q $System.Encryption.Base64Encode(X)
  N %COMMAND,Y
  S %COMMAND="base64"
  O "COMM":(SHELL="/bin/sh":COMM=%COMMAND)::"pipe"
@@ -76,6 +84,7 @@ B64ENCD(X) ;Base 64 Encode, IA #6189
  Q Y
  ;
 B64DECD(X) ;Base 64 Decode, IA #6189
+ I $G(^%ZOSF("OS"))["OpenM" Q $System.Encryption.Base64Decode(X)
  N %COMMAND,Y
  S %COMMAND="base64 -d"
  I $G(^%ZOSF("OS"))["GT.M",$$VERSION^%ZOSV(1)["Darwin" S %COMMAND="base64 -D"
@@ -100,6 +109,7 @@ RSAENCR(TEXT,CERT,CAFILE,CRLFILE,ENC) ;RSA Encrypt, IA #6189
  ; ENC (Optional) Encoding - PKCS #1 v2.1 encoding method:
  ;  1 = OAEP (default)
  ;  2 = PKCS1-v1_5
+ I $G(^%ZOSF("OS"))["OpenM" Q $system.Encryption.RSAEncrypt(TEXT,CERT,$G(CAFILE),$G(CRLFILE),$G(ENC))
  ;
  ; VEN/SMH:
  ; 1. CAFILE and CRLFILE are used for revocation, which is hard to implement.
@@ -126,6 +136,7 @@ RSADECR(TEXT,KEY,PWD,ENC) ;RSA Decrypt, IA #6189
  ;  1 = OAEP (default)
  ;  2 = PKCS1-v1_5
  ;
+ I $G(^%ZOSF("OS"))["OpenM" Q $system.Encryption.RSADecrypt(TEXT,KEY,$G(PWD),$G(ENC))
  ; VEN/SMH:
  ; 1. See note above on why I don't support ENC
  ;
@@ -144,6 +155,8 @@ AESENCR(TEXT,KEY,IV) ;AES Encrypt, IA #6189
  ; KEY  (Required) Input key material 16, 24, or 32
  ; IV   (Required) Initialization vector. If this argument is present it must 
  ;  be 16 characters long.
+ I $G(^%ZOSF("OS"))["OpenM" Q $system.Encryption.AESCBCEncrypt(TEXT,KEY,IV)
+ ;
  N %CMD S %CMD="openssl enc -e -aes-256-cbc -K "_KEY_" -iv "_IV
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF
@@ -154,6 +167,8 @@ AESENCR(TEXT,KEY,IV) ;AES Encrypt, IA #6189
  Q OUT
  ;
 AESDECR(TEXT,KEY,IV) ;AES Decrypt, IA #6189
+ I $G(^%ZOSF("OS"))["OpenM" Q $system.Encryption.AESCBCDecrypt(TEXT,KEY,IV)
+ ;
  N %CMD S %CMD="openssl enc -d -aes-256-cbc -K "_KEY_" -iv "_IV
  O "COMM":(SHELL="/bin/sh":COMM=%CMD:FIXED:WRAP:CHSET="M")::"pipe"
  U "COMM" W TEXT S $X=0 W /EOF
