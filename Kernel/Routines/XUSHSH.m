@@ -1,4 +1,4 @@
-XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ;2017-10-30  5:11 pm
+XUSHSH ;ISF/STAFF - ENCRYPTION/DECRYPTION UTILITIES ; 10/30/17 2:51pm
  ;;8.0;KERNEL;**655,659,10001**;Jul 10, 1995;Build 15
  ;Per VA Directive 6402, this routine should not be modified.
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
@@ -109,7 +109,23 @@ RSAENCR(TEXT,CERT,CAFILE,CRLFILE,ENC) ;RSA Encrypt, IA #6189
  ; ENC (Optional) Encoding - PKCS #1 v2.1 encoding method:
  ;  1 = OAEP (default)
  ;  2 = PKCS1-v1_5
- I $G(^%ZOSF("OS"))["OpenM" Q $system.Encryption.RSAEncrypt(TEXT,CERT,$G(CAFILE),$G(CRLFILE),$G(ENC))
+ N RESULT S RESULT=""
+ I $G(^%ZOSF("OS"))["OpenM" D  Q RESULT
+ . S ENC=$G(ENC,1)
+ . N FILE S FILE=CERT
+ . S CERT=""
+ . N POP
+ . N D
+ . I FILE["/" S D="/"
+ . E  S D="\"
+ . N PATH S PATH=$P(FILE,D,1,$L(FILE,D)-1)_D
+ . N FN S FN=$P(FILE,D,$L(FILE,D))
+ . D OPEN^%ZISH("XUSHSH",PATH,FN,"R")
+ . I POP Q
+ . D USE^%ZISUTL("XUSHSH")
+ . N % F  R %:2  Q:$$STATUS^%ZISH()  I %'["CERTIFICATE" S CERT=CERT_%_$C(13,10)
+ . D CLOSE^%ZISUTL("XUSHSH")
+ . S RESULT=$system.Encryption.RSAEncrypt(TEXT,CERT,$G(CAFILE),$G(CRLFILE),ENC)
  ;
  ; VEN/SMH:
  ; 1. CAFILE and CRLFILE are used for revocation, which is hard to implement.
@@ -136,7 +152,8 @@ RSADECR(TEXT,KEY,PWD,ENC) ;RSA Decrypt, IA #6189
  ;  1 = OAEP (default)
  ;  2 = PKCS1-v1_5
  ;
- I $G(^%ZOSF("OS"))["OpenM" Q $system.Encryption.RSADecrypt(TEXT,KEY,$G(PWD),$G(ENC))
+ S ENC=$G(ENC,1)
+ I $G(^%ZOSF("OS"))["OpenM" Q $system.Encryption.RSADecrypt(TEXT,KEY,$G(PWD),ENC)
  ; VEN/SMH:
  ; 1. See note above on why I don't support ENC
  ;

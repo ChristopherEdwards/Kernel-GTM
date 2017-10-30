@@ -1,9 +1,11 @@
-ZOSVONUT ; VEN/SMH - Unit Tests for Cache Encryption Functions XUSHSH;2017-10-30  5:32 pm
+ZOSVONUT ; VEN/SMH - Unit Tests for Cache Encryption Functions XUSHSH;2017-10-30  5:32 pm ; 10/30/17 2:52pm
  ;;8.0;KERNEL;**10001**;
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Authored by Sam Habiel 2017
  ; This is a copy of ZOSVGUT2 modified to work on Cache
  ;
+ D EN^%ut($t(+0),3)
+ quit
 XUSHSH ; @TEST Top of XUSHSH
  N X S X="TEST"
  D ^XUSHSH
