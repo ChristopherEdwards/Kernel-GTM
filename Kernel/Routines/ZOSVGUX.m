@@ -1,10 +1,12 @@
-%ZOSV ;VEN/SMH,KRM/CJE,FIS/KSB - View commands & special functions. ;2017-01-09  3:39 PM
- ;;8.0;KERNEL;**275,425,499,10001**;Jul 10, 1995;Build 14
+%ZOSV ;VEN/SMH,KRM/CJE,FIS/KSB - View commands & special functions. ;2017-11-30  3:39 PM
+ ;;8.0;KERNEL;**275,425,499,10001,10002**;Jul 10, 1995;Build 18
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine authored by Department of Veterans Affairs
  ; Almost the entire routine was rewritten by Sam Habiel, Christopher Edwards, KS Bhaskar
  ;
 ACTJ() ; # active jobs
+ ; Next call active as of 6.3
+ I $T(^%PEEKBYNAME)]"" Q $$^%PEEKBYNAME("node_local.ref_cnt","DEFAULT")
  I ($G(^XUTL("XUSYS","CNT"))<1)!($G(^XUTL("XUSYS","CNT","SEC"))>($$SEC^XLFDT($H)+3600)) D
  . I $$UP^XLFSTR($ZV)["LINUX" D
  .. N I,IO,LINE

@@ -1,9 +1,11 @@
-XUSCNT ;ISF/RWF - Job counting for GTM ;6/24/04  15:22
- ;;8.0;KERNEL;**275**;July 10, 1995;
+XUSCNT ;ISF/RWF - Job counting for GTM ;2017-11-30  3:35 PM
+ ;;8.0;KERNEL;**275,10002**;July 10, 1995;
  ;0 return CNT
  ;1 inc CNT
  ;-1 dec CNT
 COUNT(INC,JOB) ;Keep count of jobs
+ ; DECOMMISION *10002*
+ QUIT
  N XUCNT,X
  S JOB=$G(JOB,$J)
  ;Return Current Count
