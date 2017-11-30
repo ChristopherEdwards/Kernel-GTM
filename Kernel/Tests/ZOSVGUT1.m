@@ -1,5 +1,5 @@
-ZOSVGUT1 ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2017-10-30  5:35 pm
- ;;8.0;KERNEL;**10001**;Aug 28, 2013;Build 15
+ZOSVGUT1 ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2017-11-30  3:26 PM
+ ;;8.0;KERNEL;**10001,10002**;Aug 28, 2013;Build 15
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Authored by Sam Habiel & Christopher Edwards 2014-2016.
  ;
@@ -299,7 +299,7 @@ ZTMGRSET ; @TEST ZTMGRSET Renames Routines on GT.M
  N IOP S IOP="NULL" D ^%ZIS U IO
  D PATCH^ZTMGRSET(599) ; %ZIS
  ;
- N DTIME S DTIME=.00001
+ N DTIME S DTIME=.001
  D NAME^ZTMGRSET
  D GLOBALS^ZTMGRSET
  D RUM^ZTMGRSET
