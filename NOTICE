@@ -17,8 +17,9 @@ Full code provenance:
 [+] ZSY      - Original routine part of unreleased patch XU*8.0*349; Enhancements by KS Bhaskar and Sam Habiel. 
 [+] ZTLOAD1  - TSTART/TCOMMIT removed; Christopher Edwards.
 [+] ZTM6     - TSTART/TCOMMIT removed; Christopher Edwards.
-[+] ZTMGRSET  - Various changes throughout the routine. Recode of COPY and R entry points (KS Bhaskar, Sam Habiel).
-[+] ZUGTM     - FOIA Code, modified by Sam Habiel (JOBEXAM).
-[+] ZZUTZOSV  - All code written by Chistopher Edwards and Sam Habiel.
-[+] ZZUTZOSV2 - All code written by Sam Habiel.
+[+] ZTMGRSET - Various changes throughout the routine. Recode of COPY and R entry points (KS Bhaskar, Sam Habiel).
+[+] ZUGTM    - FOIA Code, modified by Sam Habiel (JOBEXAM).
+[+] ZOSVGUT1 - All code written by Chistopher Edwards and Sam Habiel.
+[+] ZOSVGUT2 - All code written by Sam Habiel.
+[+] ZOSVONUT - All code written by Sam Habiel.
 [+] XU810001 - All code written by Sam Habiel.

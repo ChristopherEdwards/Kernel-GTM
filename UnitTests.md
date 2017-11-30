@@ -1,12 +1,14 @@
-Unit Tests are called using ^ZZUTZOSV. There are two routines that contain unit
-tests: ZZUTZOSV and ZZUTZOSV2. They test every single change that was made in
-this project.
+Unit Tests for GT.M are called using ^ZOSVGUT1. There are two routines that
+contain unit tests: ZOSVGUT1 and ZOSVGUT2. They test every single change that
+was made in this project.
 
-Coverage can be calculated by COV^%ut. Please note that M-Unit was modified in
-order for  routines to be examined for coverage by reference in COV^%ut1. This
-change has not been published as of the time of this writing.
+This project also contains the "unredaction" of XUSHSH for Cache. The unit
+tests to test that are in ZOSVONUT.
 
-There are certain tests that may fail. You need to be aware of which ones:
+Test Setup: The tests need `stat` command, and need access to a writable `PRIMARY HFS
+DIRECTORY`.
+
+For GT.M, there are certain tests that may fail. You need to be aware of which ones:
 
  * TMTRAN - Make sure that Taskman is running. This fails occassionally because
  taskman is given 3 seconds to complete a task and sometimes can't complete it
@@ -20,7 +22,11 @@ There are certain tests that may fail. You need to be aware of which ones:
  If that happens to you, press CTRL-C, and then type ZC. Your text will be
  repeated, that's okay. To restore sanity, run ZSY "stty sane" when you are done.
 
-Tests:
+The tests have been done on multiple versions of GT.M and YottaDB on Linux x64,
+Darwin x64, Cygwin x32, and Arm7v.
+
+Tests ran by `ZOSVGUT1`:
+```
 SETNM - Set Environment Name------------------------------------  [OK] .123ms
 ZRO1 - $ZROUTINES Parsing Single Object Multiple dirs.----------  [OK] .103ms
 ZRO2 - $ZROUTINES Parsing 2 Single Object Single dir.------------  [OK] .09ms
@@ -124,4 +130,29 @@ XQ82            75.71%  53 out of 70
 XUSHSH         100.00%  64 out of 64
 ZSY             96.00%  168 out of 175
 ZTMGRSET        66.03%  103 out of 156
+```
 
+Tests ran by ZOSVONUT:
+```
+>d ^ZOSVONUT
+
+
+ ---------------------------------- ZOSVONUT ----------------------------------
+ XUSHSH - Top of XUSHSH.---------------------------------------  [OK]    0.063ms
+ SHA - SHA-1 and SHA-256 in Hex and Base64....-----------------  [OK]    0.143ms
+ BASE64 - Base 64 Encode and Decode..--------------------------  [OK]    0.060ms
+ RSAENC - Test RSA EncryptionGenerating a 2048 bit RSA private key
+ ...............+++
+ .....+++
+ writing new private key to '/tmp/mycert.key'
+ -----
+ ...Generating RSA private key, 2048 bit long modulus
+ ................................................................+++
+ .+++
+ e is 65537 (0x10001)
+ .....--------------------------  [OK]  248.881ms
+ AESENC - Test AES Encryption.---------------------------------  [OK]    0.074ms
+
+ Ran 1 Routine, 5 Entry Tags
+ Checked 16 tests, with 0 failures and encountered 0 errors.
+```

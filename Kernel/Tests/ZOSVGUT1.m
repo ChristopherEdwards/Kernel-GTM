@@ -1,5 +1,5 @@
-ZOSVGUT1 ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2017-09-10  12:02 PM
- ;;8.0;KERNEL;**10001**;Aug 28, 2013;Build 11
+ZOSVGUT1 ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2017-10-30  5:35 pm
+ ;;8.0;KERNEL;**10001**;Aug 28, 2013;Build 15
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Authored by Sam Habiel & Christopher Edwards 2014-2016.
  ;
@@ -368,6 +368,7 @@ SSVNJOB ; @TEST Replacement for ^$JOB in XQ82
  L -SSVNJOB
  H .01 ; This must be big enough to let your computer start the job
  I $ZV["CYGWIN" H 1 ; Wish I knew why...
+ I $ZV["arm" H 1 ; Arm chips too slow...
  L +SSVNJOB
  L
  D CHKTF^%ut($D(^TMP(CHILDPID)))
@@ -393,6 +394,7 @@ ZSY ; @TEST Run System Status
  D QUERY^ZSY
  N nProcs s nProcs=$$UNIXLSOF^ZSY()
  D HALTALL^ZSY ; Kill all other processes
+ i $zv["arm" h 5 ; Needed for Arm chips... not fast enough in the kill
  N nProcsAfter S nProcsAfter=$$UNIXLSOF^ZSY()
  D CHKTF^%ut(nProcs>nProcsAfter)
  D CHKTF^%ut(nProcsAfter=1)
@@ -411,6 +413,7 @@ HALTONE ; @TEST Test HALTONE^ZSY entry point
  N %J S %J=$ZJOB
  D CHKTF^%ut($zgetjpi(%J,"isprocalive"))
  D HALTONE^ZSY(%J)
+ H .01
  D CHKTF^%ut('$zgetjpi(%J,"isprocalive"))
  QUIT
  ;
