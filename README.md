@@ -15,3 +15,13 @@ Download links:
 Unit Testing
 ------------
 See [UnitTests.md](UnitTests.md)
+
+Future Plans
+------------
+I plan to port the following packages in these order:
+ 
+ * RPMS %ZISH (done)
+ * Resource Usage Monitor (RUM)
+ * Statistical Analysis of Global Growth (SAGG)
+ * Job Examination capability for ZSY
+ * XOBW web service implementation for GT.M
