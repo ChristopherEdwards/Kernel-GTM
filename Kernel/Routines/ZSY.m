@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-01-05  8:13 AM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-01-05  1:35 PM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -68,7 +68,7 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  ; S -> Stack (use R instead)
  I $G(^XUTL("XUSYS",$J,"CMD"))="EXAM" ZSHOW "*":^XUTL("XUSYS",$J,"JE")
  ;
- ; ^XUTL("XUSYS",8563,"JE","G",0)="GLD:*,REG:*,SET:25610,KIL:593,GET:12284,DTA:23941,ORD:23869,ZPR:4,QRY:0,LKS:23842,LKF:9,CTN:0,DRD:12722,DWT:0,NTW:25632,NTR:60686,NBW:19363,NBR:173935,NR0:478,NR1:245,NR2:172,NR3:0,TTW:0,TTR:0,TRB:0,TBW:0,TBR:0,TR0:0,TR1:0,TR2:0,TR3:0,TR4:0,TC0:0,TC1:0,TC2:0,TC3:0,TC4:0,ZTR:0,DFL:0,DFS:0,JFL:0,JFS:0,JBB:0,JFB:0,JFW:0,JRL:0,JRP:0,JRE:0,JRI:0,JRO:0,JEX:0,DEX:0,CAT:26132,CFE:0,CFS:1817398630,CFT:982886,CQS:1,CQT:1,CYS:105292,CYT:6464,BTD:1"
+ ; ^XUTL("XUSYS",8563,"JE","G",0)="GLD:*,REG:*,SET:25610,KIL:593,GET:12284,...
  ; Just grab the default region only. Decreases the stats as a side effect from this utility
  N GLOSTAT
  N I F I=0:0 S I=$O(^XUTL("XUSYS",$J,"JE","G",I)) Q:'I  I ^(I)[$ZGLD,^(I)["DEFAULT" S GLOSTAT=^(I)
@@ -89,7 +89,7 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  . C F
  ;
  ; Done. We can tell others we are ready
- SET ^XUTL("XUSYS",$J,"COMPLETE")=1
+ SET ^XUTL("XUSYS",$J,"JE","COMPLETE")=1
  ;
  ; TODO: DEBUG
  ;
@@ -108,7 +108,8 @@ WORK ;Main driver, Will release lock
  ;
  ;Clear old data
  S ^XUTL("XUSYS","COMMAND")="Status"
- S I=0 F  S I=$O(^XUTL("XUSYS",I)) Q:'I  K ^XUTL("XUSYS",I,"JE"),^("INTERUPT")
+ ;
+ S I=0 F  S I=$O(^XUTL("XUSYS",I)) Q:'I  K ^XUTL("XUSYS",I,"CMD"),^("INTERRUPT"),^("JE"),^("ZMODE"),^("codeline")
  ;
  ; Counts; Turn on Ctrl-C.
  S (LOCK,USERS)=0
@@ -145,7 +146,7 @@ HEADER ;Display Header
  S IOM=+$$AUTOMARG
  W !,"GT.M System Status users on ",$$DATETIME($H)," - (stats reflect accessing DEFAULT region ONLY)"
  S TAB(0)=0,TAB(1)=9,TAB(2)=25,TAB(3)=29,TAB(4)=38,TAB(5)=57,TAB(6)=66,TAB(7)=75,TAB(8)=85,TAB(9)=100,TAB(10)=115,TAB(11)=123,TAB(12)=132,TAB(13)=141
- ; U 0:FILTER
+ U 0:FILTER="ESCAPE"
  W !
  D EACHHEADER("PID",TAB(0))
  D EACHHEADER("Name",TAB(1))
@@ -160,7 +161,7 @@ HEADER ;Display Header
  I IOM>80 W ?TAB(7),"---------",?TAB(8),"-----------",?TAB(9),"-----------",?TAB(10),"-------",?TAB(11),"--------"
  I IOM>130 W ?TAB(12),"--------",?TAB(13),"--------"
  Q
-EACHHEADER(H,TAB)
+EACHHEADER(H,TAB) ; [Internal]
  N BOLD S BOLD=$C(27,91,49,109)
  N RESET S RESET=$C(27,91,109)
  W ?TAB,BOLD,H,RESET
@@ -298,14 +299,14 @@ UNIXLSOF(procs) ; [Public] - Get all processes accessing THIS database (only!)
  ; (return) .procs(n)=unix process number
  n %cmd s %cmd="lsof -t "_$view("gvfile","DEFAULT")
  i $ZV["CYGWIN" s %cmd="ps -a | grep mumps | grep -v grep | awk '{print $1}'"
- n oldio s oldio=$io
+ n oldio s oldio=$IO
  o "lsof":(shell="/bin/bash":command=%cmd)::"pipe"
  u "lsof"
- n i f i=1:1 q:$zeof  r procs(i):1  i procs(i)="" k procs(i)
+ n i f i=1:1 q:$ZEOF  r procs(i):1  i procs(i)="" k procs(i)
  u oldio c "lsof"
- quit:$quit i-2 quit
+ quit:$Q i-2 quit
  ;
-INTRPT(%J) ; [Public] Send mupip interrupt (currently SIGUSR1) using $gtm_dist/mupip
+INTRPT(%J) ; [Public] Send mupip interrupt (currently SIGUSR1)
  N SIGUSR1
  I $ZV["Linux" S SIGUSR1=10
  I $ZV["Darwin" S SIGUSR1=30
@@ -320,11 +321,12 @@ INTRPTALL(procs) ; [Public] Send mupip interrupt to every single database proces
  I $ZV["CYGWIN" S SIGUSR1=30
  ; Collect processes
  D UNIXLSOF(.procs)
- ; Signal all processes except ourselves
- N i,% F i=1:1 q:'$d(procs(i))  I procs(i)'=$J S %=$ZSIGPROC(procs(i),SIGUSR1)
- ; Do ourselves last becase we need to time ourselves to make sure that everybody else will be complete
- S %=$ZSIGPROC($J,SIGUSR1)
- N I F I=1:1:5 H .001 Q:$G(^XUTL("XUSYS",$J,"COMPLETE"))
+ ; Signal all processes ; and wait for them to finish
+ N i,% F i=1:1 q:'$d(procs(i))  D
+ . S %=$ZSIGPROC(procs(i),SIGUSR1)
+ . N I F I=1:1:5 H .001 Q:$G(^XUTL("XUSYS",procs(i),"JE","COMPLETE"))
+ . I '$G(^XUTL("XUSYS",procs(i),"JE","COMPLETE")) D
+ .. N I F I=1:1:2 H .1 Q:$G(^XUTL("XUSYS",procs(i),"JE","COMPLETE"))
  QUIT
  ;
 HALTALL ; [Public] Gracefully halt all jobs accessing current database
@@ -361,9 +363,7 @@ HALTONE(%J) ; [Public] Halt a single process
  ;
 KILL(%J) ; [Private] Kill %J
  n %cmd s %cmd="kill "_%J
- o "kill":(shell="/bin/sh":command=%cmd)::"pipe"
- u "kill"
- c "kill"
+ o "kill":(shell="/bin/sh":command=%cmd)::"pipe" u "kill" c "kill"
  quit
  ;
 ZJOB ; [Public, Interactive] Examine a specific job -- written by OSEHRA/SMH
@@ -384,7 +384,7 @@ JOBVIEW ;
  . N EXAMREAD
  . I X?1.N,$zgetjpi(X,"isprocalive") F  D  Q:DONEONE  ; This is an inner read loop to refresh a process.
  .. N % S %=$$EXAMINEJOBBYPID(X)
- .. I %'=0 W !,"The job didn't respond to examination for 5 ms. You may try again." S DONEONE=1 QUIT
+ .. I %'=0 W !,"The job didn't respond to examination for 500 ms. You may try again." S DONEONE=1 QUIT
  .. D PRINTEXAMDATA(X,$G(EXAMREAD))
  .. W "Enter to Refersh, V for variables, I for ISVs, K to kill",!
  .. R "L to load variables into your ST and quit, ^ to go back: ",EXAMREAD:$G(DTIME,300)
@@ -399,18 +399,20 @@ JOBVIEW ;
  ;
 EXAMINEJOBBYPID(%J) ; [$$, Public, Silent] Examine Job by PID; Non-zero output failure
  Q:'$ZGETJPI(X,"isprocalive") -1
+ K ^XUTL("XUSYS",%J,"CMD"),^("INTERRUPT"),^("JE"),^("ZMODE"),^("codeline")
  S ^XUTL("XUSYS",%J,"CMD")="EXAM"
  D INTRPT(%J)
- N I F I=1:1:5 H .001 Q:$G(^XUTL("XUSYS",%J,"COMPLETE"))
- I '$G(^XUTL("XUSYS",%J,"COMPLETE")) Q -1
+ N I F I=1:1:150 H .001 Q:$G(^XUTL("XUSYS",%J,"JE","COMPLETE"))
+ ;I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) D
+ ;. N I F I=1:1:5 H .1 Q:$G(^XUTL("XUSYS",%J,"JE","COMPLETE"))
+ I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) Q -1
  QUIT 0
  ;
 PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  ; ^XUTL("XUSYS",8563,"INTERRUPT")="GETTASK+3^%ZTMS1"
- ; ^XUTL("XUSYS",8563,"JE","G",0)="GLD:*,REG:*,SET:25610,KIL:593,GET:12284,DTA:23941,ORD:23869,ZPR:4,QRY:0,LKS:23842,LKF:9,CTN:0,DRD:12722,DWT:0,NTW:25632,NTR:60686,NBW:19363,NBR:173935,NR0:478,NR1:245,NR2:172,NR3:0,TTW:0,TTR:0,TRB:0,TBW:0,TBR:0,TR0:0,TR1:0,TR2:0,TR3:0,TR4:0,TC0:0,TC1:0,TC2:0,TC3:0,TC4:0,ZTR:0,DFL:0,DFS:0,JFL:0,JFS:0,JBB:0,JFB:0,JFW:0,JRL:0,JRP:0,JRE:0,JRI:0,JRO:0,JEX:0,DEX:0,CAT:26132,CFE:0,CFS:1817398630,CFT:982886,CQS:1,CQT:1,CYS:105292,CYT:6464,BTD:1"
+ ; ^XUTL("XUSYS",8563,"JE","G",0)="GLD:*,REG:*,SET:25610,KIL:593,GET:12284,...
  ; ^XUTL("XUSYS",8563,"ZMODE")="OTHER"
  N ZSY M ZSY=^XUTL("XUSYS",%J)
- K ^XUTL("XUSYS",%J,"CMD"),^("COMPLETE"),^("INTERRUPT"),^("JE"),^("ZMODE"),^("codeline")
  ;
  N BOLD S BOLD=$C(27,91,49,109)
  N RESET S RESET=$C(27,91,109)
@@ -434,7 +436,7 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  . N I F I=0:0 S I=$O(ZSY("JE","I",I)) Q:'I  W ZSY("JE","I",I),!
  ;
  ; Normal Display: Job Info, Stack, Locks, Devices
- W #
+ W !
  W UNDER,"JOB INFORMATION FOR "_%J," (",$ZDATE(ZSY(0),"YYYY-MON-DD 24:60:SS"),")",RESET,!
  W BOLD,"AT: ",RESET,ZSY("INTERRUPT"),": ",ZSY("codeline"),!!
  ;
@@ -442,7 +444,7 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  W BOLD,"Stack: ",RESET,!
  N S F S=$O(ZSY("JE","R"," "),-1):-1:1 Q:ZSY("JE","R",S)["$ZINTERRUPT"  D
  . N PLACE S PLACE=$P(ZSY("JE","R",S),":")
- . I $E(PLACE)=" " QUIT ; GTM adds an extra level sometimes for display -- messes me up
+ . I $E(PLACE)=" " QUIT  ; GTM adds an extra level sometimes for display -- messes me up
  . W CNT,". "
  . I PLACE'["GTM$DMOD" W PLACE,?40,$T(@PLACE)
  . W !
