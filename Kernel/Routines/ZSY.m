@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-01-03  3:38 PM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-01-05  8:13 AM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -143,19 +143,32 @@ LW ;Lock wait
 HEADER ;Display Header
  W #
  S IOM=+$$AUTOMARG
- S TAB(1)=9,TAB(2)=25,TAB(3)=29,TAB(4)=38,TAB(5)=57,TAB(6)=66,TAB(7)=75,TAB(8)=85,TAB(9)=100,TAB(10)=115,TAB(11)=123,TAB(12)=132,TAB(13)=141
- W !,"GT.M System Status users on ",$$DATETIME($H)," - (stats reflect accessing DEFAULT region ONLY)",!
- W !,"Proc. id",?TAB(1),"Proc. name",?TAB(2),"PS",?TAB(3),"Device",?TAB(4),"Routine",?TAB(5),"MODE",?TAB(6),"CPU time"
+ W !,"GT.M System Status users on ",$$DATETIME($H)," - (stats reflect accessing DEFAULT region ONLY)"
+ S TAB(0)=0,TAB(1)=9,TAB(2)=25,TAB(3)=29,TAB(4)=38,TAB(5)=57,TAB(6)=66,TAB(7)=75,TAB(8)=85,TAB(9)=100,TAB(10)=115,TAB(11)=123,TAB(12)=132,TAB(13)=141
+ ; U 0:FILTER
+ W !
+ D EACHHEADER("PID",TAB(0))
+ D EACHHEADER("Name",TAB(1))
+ D EACHHEADER("PS",TAB(2))
+ D EACHHEADER("Device",TAB(3))
+ D EACHHEADER("Routine",TAB(4))
+ D EACHHEADER("Mode",TAB(5))
+ D EACHHEADER("CPU Time",TAB(6))
  I IOM>80 w ?TAB(7),"OP/READ"    W ?TAB(8),"NTR/NTW    ",?TAB(9),"NR0123",?TAB(10),"%LSUCC",?TAB(11),"%CFAIL"
  I IOM>130 w ?TAB(12),"R MB",?TAB(13),"W MB"
  W !,"--------",?TAB(1),"---------------",?TAB(2),"---",?TAB(3),"--------",?TAB(4),"--------",?TAB(5),"-------",?TAB(6),"--------"
  I IOM>80 W ?TAB(7),"---------",?TAB(8),"-----------",?TAB(9),"-----------",?TAB(10),"-------",?TAB(11),"--------"
  I IOM>130 W ?TAB(12),"--------",?TAB(13),"--------"
  Q
+EACHHEADER(H,TAB)
+ N BOLD S BOLD=$C(27,91,49,109)
+ N RESET S RESET=$C(27,91,109)
+ W ?TAB,BOLD,H,RESET
+ QUIT
 USHOW ;Display job info, sorted by pid
- N SI,X,EXIT
- S SI="",EXIT=0
- F  S SI=$ORDER(SORT(SI)) Q:SI=""!EXIT  F I=1:1:SORT(SI) D  Q:EXIT
+ N SI,X
+ S SI=""
+ F  S SI=$ORDER(SORT(SI)) Q:SI=""  F I=1:1:SORT(SI) D
  . S X=SORT(SI,I)
  . S TNAME=$P(X,"~",4),PROCID=$P(X,"~",1) ; TNAME is Terminal Name, i.e. the device.
  . S JTYPE=$P(X,"~",5),CTIME=$P(X,"~",6)
@@ -188,19 +201,30 @@ USHOW ;Display job info, sorted by pid
  .. W ?TAB(12),$J($G(^XUTL("XUSYS",PID,"JE","RBYTE"))/(1024*1024),"",2)
  .. W ?TAB(13),$J($G(^XUTL("XUSYS",PID,"JE","WBYTE"))/(1024*1024),"",2)
  . ;
+ . ; Device processing
  . N DEV
  . F DI=1:1 Q:'$D(^XUTL("XUSYS",PID,"JE","D",DI))  S X=^(DI) D
  .. I X["CLOSED" QUIT  ; Don't print closed devices
  .. I PID=$J,$E(X,1,2)="ps" QUIT  ; Don't print our ps device
  .. I $E(X)=0 QUIT  ; Don't print default principal devices
- .. I X'[TNAME S DEV(DI)=X ; Don't include ttys/pts
- .. ; Strip the spaces, except for one
- .. I $E(DEV(DI))=" " N NOTSP F I=1:1:$L(DEV(DI)) I $E(DEV(DI),I)'=" " S NOTSP=I,DEV(DI)=$E(DEV(DI),NOTSP-1,$L(DEV(DI))
- . S DI=0 F  S DI=$O(DEV(DI)) Q:DI'>0  D
- .. W:$E(DEV(DI))'=" " !,?TAB(1)
- .. I IOM>130 W DEV(DI)," "
- .. E  W !,TAB(2),DEV(DI)
+ .. I X[TNAME QUIT  ; Don't include ttys/pts
+ .. S DEV(DI)=$$TRIM(X) ; Remove extra spaces
+ .. I $E(X)=" " S DEV(DI)=" "_DEV(DI) ; but add one if we had to trim it.
+ . ;
+ . ; Device print
+ . I $O(DEV("")) D
+ .. W !
+ .. I IOM>130 W " " F DI=0:0 S DI=$O(DEV(DI)) Q:'DI  W DEV(DI)
+ .. E         F DI=0:0 S DI=$O(DEV(DI)) Q:'DI  D
+ ... W:$E(DEV(DI))=" " !
+ ... W ?TAB(1),DEV(DI)
  Q
+ ;
+TRIM(STR) ; [Private] Trim spaces
+ N OUT,I,NOTSP
+ F I=1:1:$L(STR)  I $E(STR,I)'=" " S OUT=$E(STR,I,$L(STR)) QUIT
+ F I=$L(OUT):-1:1 I $E(OUT,I)'=" " S OUT=$E(OUT,1,I) QUIT
+ QUIT OUT
  ;
 DATETIME(HOROLOG) ;
  Q $ZDATE(HOROLOG,"DD-MON-YY 24:60:SS")
