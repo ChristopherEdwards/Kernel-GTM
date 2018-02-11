@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-01-25  3:48 PM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-11  12:49 PM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -86,10 +86,19 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  . O F:(READONLY:REWIND):0 E  Q
  . U F
  . N DONE S DONE=0 ; $ZEOF doesn't seem to work (https://github.com/YottaDB/YottaDB/issues/120)
- . N X,ZEOF F  R X:0 U F D  Q:DONE
+ . N X F  R X:0 U F D  Q:DONE
  .. I X["read_bytes"  S ^XUTL("XUSYS",$J,"JE","RBYTE")=$P(X,": ",2)
  .. I X["write_bytes" S ^XUTL("XUSYS",$J,"JE","WBYTE")=$P(X,": ",2) S DONE=1
- . C F
+ . U OLDIO C F
+ . ;
+ . ; Capture Memory Status
+ . N F S F="/proc/"_$J_"/status"
+ . O F:(READONLY:REWIND):0 E  Q
+ . U F
+ . N DONE S DONE=0 ; $ZEOF doesn't seem to work (https://github.com/YottaDB/YottaDB/issues/120)
+ . N X F  R X:0 U F D  Q:DONE
+ .. I X["VmSize" S ^XUTL("XUSYS",$J,"JE","VMSIZEKB")=+$$TRIM($P(X,":",2)),DONE=1
+ . U OLDIO C F
  ;
  ; Done. We can tell others we are ready
  SET ^XUTL("XUSYS",$J,"JE","COMPLETE")=1
@@ -153,7 +162,7 @@ HEADER(TAB) ;Display Header
  W !,"GT.M System Status users on ",$$DATETIME($H)," - (stats reflect accessing DEFAULT region ONLY)"
  S TAB(0)=0,TAB(1)=6,TAB(2)=25,TAB(3)=29,TAB(4)=38,TAB(5)=57,TAB(6)=66
  S TAB(7)=75,TAB(8)=85,TAB(9)=100,TAB(10)=115,TAB(11)=123,TAB(12)=132
- S TAB(13)=141
+ S TAB(13)=141,TAB(14)=150
  U 0:FILTER="ESCAPE"
  W !
  D EACHHEADER("PID",TAB(0))
@@ -171,6 +180,7 @@ HEADER(TAB) ;Display Header
  I IOM>130 D
  . D EACHHEADER("R MB",TAB(12))
  . D EACHHEADER("W MB",TAB(13))
+ . D EACHHEADER("M MB",TAB(14))
  Q
 EACHHEADER(H,TAB) ; [Internal]
  ; ZEXCEPT: AB
@@ -216,6 +226,7 @@ USHOW(TAB,SORT) ;Display job info, sorted by pid
  . I IOM>130 D
  .. W ?TAB(12),$J($G(^XUTL("XUSYS",PID,"JE","RBYTE"))/(1024*1024),"",2)
  .. W ?TAB(13),$J($G(^XUTL("XUSYS",PID,"JE","WBYTE"))/(1024*1024),"",2)
+ .. W ?TAB(14),$J($G(^XUTL("XUSYS",PID,"JE","VMSIZEKB"))/1024,"",2)
  . ;
  . ; Device print - Extract Info
  . ; F DI=0:0 S DI=$O(DEV(DI)) Q:'DI  D
@@ -261,10 +272,7 @@ DEVSEL(DEV) ; [Private] Select Device to Print
  Q "ERROR"
  ;
 TRIM(STR) ; [Private] Trim spaces
- N OUT,I,NOTSP
- F I=1:1:$L(STR)  I $E(STR,I)'=" " S OUT=$E(STR,I,$L(STR)) QUIT
- F I=$L(OUT):-1:1 I $E(OUT,I)'=" " S OUT=$E(OUT,1,I) QUIT
- QUIT OUT
+ Q $$FUNC^%TRIM(STR)
  ;
 DATETIME(HOROLOG) ;
  Q $ZDATE(HOROLOG,"DD-MON-YY 24:60:SS")
