@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-11  12:49 PM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-11  5:34 PM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -218,7 +218,7 @@ USHOW(TAB,SORT) ;Display job info, sorted by pid
  .. I LKS+LKF'=0 S lockSuccess=LKS/(LKS+LKF)
  .. e  s lockSuccess=0
  .. W ?TAB(10),$J(lockSuccess*100,"",2)_"%"
- .. N CFE,CAT S CFE=^XUTL("XUSYS",PID,"JE","GSTAT","CFE"),CAT=^("CAT")
+ .. N CFE,CAT S CFE=$g(^XUTL("XUSYS",PID,"JE","GSTAT","CFE")),CAT=$g(^("CAT"))
  .. N critSectionAcqFailure
  .. I CFE+CAT'=0 S critSectionAcqFailure=CFE/(CFE+CAT)
  .. e  s critSectionAcqFailure=0
