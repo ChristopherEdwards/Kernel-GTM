@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-11  5:34 PM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-18  7:55 PM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -11,15 +11,29 @@ EN ; [Public] Main Entry Point
  ;From the top just show by PID
  N MODE
  L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
- S MODE=0 D WORK
+ S MODE=0 D WORK(MODE)
  Q
  ;
 QUERY ; [Public] Alternate Entry Point
  N MODE,X
  L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
  S X=$$ASK W ! I X=-1 L -^XUTL("XUSYS","COMMAND") Q
- S MODE=+X D WORK
+ S MODE=+X D WORK(MODE)
  Q
+ ;
+TMMGR ; [Public] Show only taskman manager tasks
+ N MODE
+ L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
+ N FILTER S FILTER("%ZTM")="",FILTER("%ZTM0")=""
+ S MODE=0 D WORK(MODE,.FILTER)
+ QUIT
+ ;
+TMSUB ; [Public] Show only taskman submanager tasks
+ N MODE
+ L +^XUTL("XUSYS","COMMAND"):1 I '$T G LW
+ N FILTER S FILTER("%ZTMS1")=""
+ S MODE=0 D WORK(MODE,.FILTER)
+ QUIT
  ;
 ASK() ;Ask sort item
  ; ZEXCEPT: %utAnswer
@@ -37,23 +51,27 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  ; Preserve old state for process
  N OLDIO S OLDIO=$IO
  N %reference S %reference=$REFERENCE
+ K ^XUTL("XUSYS",$J,"JE")
+ ;
+ ; Halt the Job if requested - no need to do other work
+ I $G(^XUTL("XUSYS",$J,"CMD"))="HALT" D H2^XUSCLEAN G HALT^ZU
+ ;
  ;
  ; Save these
  S ^XUTL("XUSYS",$J,0)=$H
- S ^XUTL("XUSYS",$J,"INTERRUPT")=$G(%ZPOS)
- S ^XUTL("XUSYS",$J,"ZMODE")=$ZMODE ; SMH - INTERACTIVE or OTHER
- I %ZPOS'["GTM$DMOD" S ^XUTL("XUSYS",$J,"codeline")=$T(@%ZPOS)
- K ^XUTL("XUSYS",$J,"JE")
- ;
- ; Halt the Job if requested
- I $G(^XUTL("XUSYS",$J,"CMD"))="HALT" D H2^XUSCLEAN G HALT^ZU
+ S ^XUTL("XUSYS",$J,"JE","INTERRUPT")=$G(%ZPOS)
+ S ^XUTL("XUSYS",$J,"JE","ZMODE")=$ZMODE ; SMH - INTERACTIVE or OTHER
+ I %ZPOS'["GTM$DMOD" S ^XUTL("XUSYS",$J,"JE","codeline")=$T(@%ZPOS)
+ I $G(DUZ) S ^XUTL("XUSYS",$J,"JE","UNAME")=$P($G(^VA(200,DUZ,0)),"^")
+ E           S ^XUTL("XUSYS",$J,"JE","UNAME")=$G(^XUTL("XUSYS",$J,"NM"))
  ;
  ;
  ; Default System Status.
  ; S -> Stack
  ; D -> Devices
  ; G -> Global Stats
- I '$D(^XUTL("XUSYS",$J,"CMD")) ZSHOW "SGD":^XUTL("XUSYS",$J,"JE") ; Default case -- most of the time this is what happens.
+ ; L -> Locks
+ I '$D(^XUTL("XUSYS",$J,"CMD")) ZSHOW "SGDL":^XUTL("XUSYS",$J,"JE") ; Default case -- most of the time this is what happens.
  ;
  ; Examine the Job
  ; ZSHOW "*" is "BDGILRV"
@@ -68,7 +86,7 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  ; A -> Autorelink information
  ; C -> External programs that are loaded (presumable with D &)
  ; S -> Stack (use R instead)
- I $G(^XUTL("XUSYS",$J,"CMD"))="EXAM" ZSHOW "*":^XUTL("XUSYS",$J,"JE")
+ I $G(^XUTL("XUSYS",$J,"CMD"))="EXAM"!($P($G(^("CMD")),U)="DEBUG") ZSHOW "*":^XUTL("XUSYS",$J,"JE")
  ;
  ; ^XUTL("XUSYS",8563,"JE","G",0)="GLD:*,REG:*,SET:25610,KIL:593,GET:12284,...
  ; Just grab the default region only. Decreases the stats as a side effect from this utility
@@ -80,7 +98,7 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  . S ^XUTL("XUSYS",$J,"JE","GSTAT",SUB)=OBJ
  ;
  ; Capture IO statistics for this process
- ; ZEXCEPT: READONLY, REWIND
+ ; ZEXCEPT: READONLY,REWIND
  I $ZV["Linux" D
  . N F S F="/proc/"_$J_"/io"
  . O F:(READONLY:REWIND):0 E  Q
@@ -90,18 +108,22 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  .. I X["read_bytes"  S ^XUTL("XUSYS",$J,"JE","RBYTE")=$P(X,": ",2)
  .. I X["write_bytes" S ^XUTL("XUSYS",$J,"JE","WBYTE")=$P(X,": ",2) S DONE=1
  . U OLDIO C F
- . ;
- . ; Capture Memory Status
- . N F S F="/proc/"_$J_"/status"
- . O F:(READONLY:REWIND):0 E  Q
- . U F
- . N DONE S DONE=0 ; $ZEOF doesn't seem to work (https://github.com/YottaDB/YottaDB/issues/120)
- . N X F  R X:0 U F D  Q:DONE
- .. I X["VmSize" S ^XUTL("XUSYS",$J,"JE","VMSIZEKB")=+$$TRIM($P(X,":",2)),DONE=1
- . U OLDIO C F
+ ;
+ ; Capture String Pool Stats: Full size - Freed Data
+ ; spstat 2nd piece is the actual size--but that fluctuates wildly
+ ; I use the full size allocated (defaults at 0.10 MB) - the size freed.
+ n spstat s spstat=$view("spsize")
+ ;
+ S ^XUTL("XUSYS",$J,"JE","SPOOL")=spstat
+ S ^XUTL("XUSYS",$J,"JE","HEAP_MEM")=$p(spstat,",",1)-$p(spstat,",",3)
  ;
  ; Done. We can tell others we are ready
  SET ^XUTL("XUSYS",$J,"JE","COMPLETE")=1
+ ;
+ I $P($G(^XUTL("XUSYS",$J,"CMD")),U)="DEBUG" D
+ . S $ETRAP="I $ZJOBEXAM($J)"
+ . S $ZSTEP="F  H 1"
+ . I %ZPOS'["GTM$DMOD" ZB GO+25^XMKPLQ
  ;
  ; TODO: DEBUG
  ;
@@ -110,11 +132,13 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  I %reference
  Q 1
  ;
-WORK ; [Private] Main driver, Will release lock
- N ACCESS,USERS,GROUP,JTYPE,MEMBER,PROCID
+WORK(MODE,FILTER) ; [Private] Main driver, Will release lock
+ ; int MODE
+ ; FILTER ref
+ N USERS,GROUP,PROCID
  N TNAME,I,SORT,TAB
  N $ES,$ET
- n STATE,%PS,RTN,%OS,DONE
+ n %PS,RTN,%OS,DONE
  ;
  ;Save $ZINTERRUPT, set new one
  N OLDINT
@@ -123,18 +147,18 @@ WORK ; [Private] Main driver, Will release lock
  ;Clear old data
  S ^XUTL("XUSYS","COMMAND")="Status"
  ;
- S I=0 F  S I=$O(^XUTL("XUSYS",I)) Q:'I  K ^XUTL("XUSYS",I,"CMD"),^("INTERRUPT"),^("JE"),^("ZMODE"),^("codeline")
+ S I=0 F  S I=$O(^XUTL("XUSYS",I)) Q:'I  K ^XUTL("XUSYS",I,"CMD"),^("JE")
  ;
  ; Counts; Turn on Ctrl-C.
  N USERS S USERS=0
  U $P:CTRAP=$C(3)
  ;
  ;Go get the data
- D UNIX
+ D UNIX(MODE,.USERS,.SORT)
  ;
  ;Now show the results
  I USERS D
- . D HEADER(.TAB),USHOW(.TAB,.SORT)
+ . D HEADER(.TAB),USHOW(.TAB,.SORT,.FILTER)
  . W !!,"Total ",USERS," user",$S(USERS>1:"s.",1:"."),!
  . Q
  E  W !,"No current GT.M users.",!
@@ -159,28 +183,29 @@ HEADER(TAB) ;Display Header
  ; ZEXCEPT: AB
  W #
  S IOM=+$$AUTOMARG
- W !,"GT.M System Status users on ",$$DATETIME($H)," - (stats reflect accessing DEFAULT region ONLY)"
- S TAB(0)=0,TAB(1)=6,TAB(2)=25,TAB(3)=29,TAB(4)=38,TAB(5)=57,TAB(6)=66
- S TAB(7)=75,TAB(8)=85,TAB(9)=100,TAB(10)=115,TAB(11)=123,TAB(12)=132
- S TAB(13)=141,TAB(14)=150
+ W !,"GT.M System Status users on ",$$DATETIME($H)," - (stats reflect accessing DEFAULT region ONLY except *)"
+ S TAB(0)=0,TAB(1)=6,TAB(2)=14,TAB(3)=18,TAB(4)=27,TAB(5)=46,TAB(6)=66
+ S TAB(7)=75,TAB(8)=85,TAB(9)=100,TAB(10)=110,TAB(11)=115,TAB(12)=123
+ S TAB(13)=130,TAB(14)=141,TAB(15)=150
  U 0:FILTER="ESCAPE"
  W !
  D EACHHEADER("PID",TAB(0))
- D EACHHEADER("Name",TAB(1))
+ D EACHHEADER("PName",TAB(1))
  D EACHHEADER("Device",TAB(2))
  D EACHHEADER("Routine",TAB(4))
- D EACHHEADER("Mode",TAB(5))
+ D EACHHEADER("Name",TAB(5))
  D EACHHEADER("CPU Time",TAB(6))
  I IOM>80 D
  . D EACHHEADER("OP/READ",TAB(7))
  . D EACHHEADER("NTR/NTW",TAB(8))
  . D EACHHEADER("NR0123",TAB(9))
- . D EACHHEADER("%LSUCC",TAB(10))
- . D EACHHEADER("%CFAIL",TAB(11))
+ . D EACHHEADER("#L",TAB(10))
+ . D EACHHEADER("%LSUCC",TAB(11))
+ . D EACHHEADER("%CFAIL",TAB(12))
  I IOM>130 D
- . D EACHHEADER("R MB",TAB(12))
- . D EACHHEADER("W MB",TAB(13))
- . D EACHHEADER("M MB",TAB(14))
+ . D EACHHEADER("R MB*",TAB(13))
+ . D EACHHEADER("W MB*",TAB(14))
+ . D EACHHEADER("SP MB*",TAB(15))
  Q
 EACHHEADER(H,TAB) ; [Internal]
  ; ZEXCEPT: AB
@@ -188,21 +213,26 @@ EACHHEADER(H,TAB) ; [Internal]
  N RESET S RESET=$C(27,91,109)
  W ?TAB,BOLD,H,RESET
  QUIT
-USHOW(TAB,SORT) ;Display job info, sorted by pid
+USHOW(TAB,SORT,FILTER) ;Display job info, sorted by pid
  ; ZEXCEPT: AB
  N SI,I
  S SI=""
  F  S SI=$ORDER(SORT(SI)) Q:SI=""  F I=1:1:SORT(SI) D
- . N X,TNAME,PROCID,JTYPE,CTIME,PS,PID,UNAME,RTN
+ . N X,TNAME,PROCID,PROCNAME,CTIME,PS,PID,PLACE
  . S X=SORT(SI,I)
- . S PID=$P(X,"~",8),UNAME=$P(X,"~",2)
+ . S PID=$P(X,"~",8)
+ . S PLACE=$G(^XUTL("XUSYS",PID,"JE","INTERRUPT"))
+ . ; Debug
+ . ; I $D(^XUTL("XUSYS",PID)) ZWRITE ^(PID,*)
+ . ; debug
+ . N RTNNAME S RTNNAME=$P(PLACE,"^",2)
+ . I $D(FILTER)=10 Q:$$FILTROUT(.FILTER,RTNNAME,PID)
  . N DEV D DEV(.DEV,PID)
  . S TNAME=$$DEVSEL(.DEV),PROCID=$P(X,"~",1) ; TNAME is Terminal Name, i.e. the device.
- . S JTYPE=$P(X,"~",5),CTIME=$P(X,"~",6)
- . S PS=$P(X,"~",3)
- . S RTN=$G(^XUTL("XUSYS",PID,"INTERRUPT"))
- . I $G(^XUTL("XUSYS",PID,"ZMODE"))="OTHER" S TNAME="BG-"_TNAME
- . W !,PROCID,?TAB(1),UNAME,?TAB(2),TNAME,?TAB(4),RTN,?TAB(5),ACCESS(JTYPE),?TAB(6),$J(CTIME,6)
+ . S PROCNAME=$P(X,"~",5),CTIME=$P(X,"~",6)
+ . I $G(^XUTL("XUSYS",PID,"JE","ZMODE"))="OTHER" S TNAME="BG-"_TNAME
+ . N UNAME S UNAME=$G(^XUTL("XUSYS",PID,"JE","UNAME"))
+ . W !,PROCID,?TAB(1),PROCNAME,?TAB(2),TNAME,?TAB(4),PLACE,?TAB(5),UNAME,?TAB(6),$J(CTIME,6)
  . I IOM>80 D
  .. I '$D(^XUTL("XUSYS",PID,"JE","GSTAT","DRD")) W ?TAB(7),"PROCESS NOT RESPONDING" QUIT
  .. N DRD,DTA,GET,ORD,ZPR,QRY
@@ -211,22 +241,35 @@ USHOW(TAB,SORT) ;Display job info, sorted by pid
  .. i DRD=0 s opPerRead=0
  .. e  S opPerRead=(DTA+GET+ORD+ZPR+QRY)/DRD
  .. W ?TAB(7),$J(opPerRead,"",2)
- .. W ?TAB(8),^XUTL("XUSYS",PID,"JE","GSTAT","NTR"),"/",^("NTW")
+ .. N NTR,NTW S NTR=^XUTL("XUSYS",PID,"JE","GSTAT","NTR"),NTW=^("NTW") ; **NAKED**
+ .. I NTR>9999 S NTR=$J(NTR/1024,"",0)_"k",NTW=$J(NTW/1024,"",0)_"k"
+ .. W ?TAB(8),NTR,"/",NTW
  .. W ?TAB(9),^XUTL("XUSYS",PID,"JE","GSTAT","NR0"),"/",^("NR1"),"/",^("NR2"),"/",^("NR3")
+ .. ; ^XUTL("XUSYS",14295,"JE","L",1)="LOCK ^XUTL(""XUSYS"",""COMMAND"") LEVEL=2"
+ .. N numLocks s numLocks=0
+ .. N I F I=0:0 S I=$O(^XUTL("XUSYS",PID,"JE","L",I)) Q:'I  N S S S=^(I) D  ; **NAKED**
+ ... N levelLocation S levelLocation=$find(S,"LEVEL=")
+ ... n level s level=+$E(S,levelLocation,999)
+ ... s numLocks=numLocks+level
+ .. W ?TAB(10),numLocks
  .. N LKS,LKF S LKS=^XUTL("XUSYS",PID,"JE","GSTAT","LKS"),LKF=^("LKF")
  .. N lockSuccess
  .. I LKS+LKF'=0 S lockSuccess=LKS/(LKS+LKF)
  .. e  s lockSuccess=0
- .. W ?TAB(10),$J(lockSuccess*100,"",2)_"%"
+ .. W ?TAB(11)
+ .. i (LKS+LKF)<100 W LKS,"/",LKS+LKF
+ .. e  w $J(lockSuccess*100,"",2)_"%"
  .. N CFE,CAT S CFE=$g(^XUTL("XUSYS",PID,"JE","GSTAT","CFE")),CAT=$g(^("CAT"))
- .. N critSectionAcqFailure
- .. I CFE+CAT'=0 S critSectionAcqFailure=CFE/(CFE+CAT)
- .. e  s critSectionAcqFailure=0
- .. W ?TAB(11),$J(critSectionAcqFailure*100,"",2)_"%"
+ .. N critAcqFailure
+ .. I CFE+CAT'=0 S critAcqFailure=CFE/(CFE+CAT)
+ .. e  s critAcqFailure=0
+ .. W ?TAB(12)
+ .. i (CFE+CAT)<9999 W CFE,"/",CFE+CAT
+ .. e  w $J(critAcqFailure*100,"",2)_"%"
  . I IOM>130 D
- .. W ?TAB(12),$J($G(^XUTL("XUSYS",PID,"JE","RBYTE"))/(1024*1024),"",2)
- .. W ?TAB(13),$J($G(^XUTL("XUSYS",PID,"JE","WBYTE"))/(1024*1024),"",2)
- .. W ?TAB(14),$J($G(^XUTL("XUSYS",PID,"JE","VMSIZEKB"))/1024,"",2)
+ .. W ?TAB(13),$J($G(^XUTL("XUSYS",PID,"JE","RBYTE"))/(1024*1024),"",2)
+ .. W ?TAB(14),$J($G(^XUTL("XUSYS",PID,"JE","WBYTE"))/(1024*1024),"",2)
+ .. W ?TAB(15),$J($G(^XUTL("XUSYS",PID,"JE","HEAP_MEM"))/(1024*1024),"",2)
  . ;
  . ; Device print - Extract Info
  . ; F DI=0:0 S DI=$O(DEV(DI)) Q:'DI  D
@@ -238,6 +281,25 @@ USHOW(TAB,SORT) ;Display job info, sorted by pid
  .;.. W:$E(DEV(DI))=" " !
  .;.. W ?TAB(1),DEV(DI)
  Q
+ ;
+FILTROUT(FILTER,RTNNAME,PID) ; [Private] Should this item be filtered out?
+ I RTNNAME="" QUIT 1  ; yes, filter out processes that didn't respond
+ ; ^XUTL("XUSYS",24754,"JE","S",1)="JOBEXAM+22^ZSY"
+ ; ^XUTL("XUSYS",24754,"JE","S",2)="JOBEXAM+2^ZU"
+ ; ^XUTL("XUSYS",24754,"JE","S",3)="GETTASK+3^%ZTMS1    ($ZINTERRUPT) "
+ ; ^XUTL("XUSYS",24754,"JE","S",4)="SUBMGR+1^%ZTMS1"
+ n found s found=0
+ N I F I=1:1 Q:'$D(^XUTL("XUSYS",PID,"JE","S",I))  do  q:found
+ . i ^XUTL("XUSYS",PID,"JE","S",I)["Call-In" quit
+ . i ^XUTL("XUSYS",PID,"JE","S",I)["GTM$DMOD" quit
+ . n rtnName s rtnName=$p(^XUTL("XUSYS",PID,"JE","S",I),"^",2)
+ . i rtnName[" " s rtnName=$p(rtnName," ")
+ . n each s each=""
+ . f  s each=$o(FILTER(each)) q:each=""  do  q:found
+ .. i $d(FILTER(rtnName)) s found=1
+ ;
+ ; If we find it, we don't want to filter it out.
+ QUIT 'found
  ;
 DEV(DEV,PID) ; [Private] Device Processing
  ; Input: Global ^XUTL("XUSYS",PID,"JE","D"), PID
@@ -277,7 +339,7 @@ TRIM(STR) ; [Private] Trim spaces
 DATETIME(HOROLOG) ;
  Q $ZDATE(HOROLOG,"DD-MON-YY 24:60:SS")
  ;
-UNIX ;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
+UNIX(MODE,USERS,SORT) ;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  N %I,U,$ET,$ES
  S $ET="D UERR^ZSY"
  S %I=$I,U="^"
@@ -300,7 +362,7 @@ UNIX ;PUG/TOAD,FIS/KSB,VEN/SMH - Kernel System Status Report for GT.M
  . F  R %TEXT Q:$ZEO  D
  .. S %LINE=$$VPE(%TEXT," ",U) ; parse each line of the ps output
  .. Q:$P(%LINE,U)="PID"  ; header line
- .. D JOBSET(%LINE)
+ .. D JOBSET(%LINE,MODE,.USERS,.SORT)
  . U %I C "ps"
  Q
  ;
@@ -309,25 +371,22 @@ UERR ;Linux Error
  ZSHOW "*"
  Q  ;halt
  ;
-JOBSET(%LINE) ;Get data from a Linux job
+JOBSET(%LINE,MODE,USERS,SORT) ;Get data from a Linux job
  N %J
- N UNAME,PS,TNAME,JTYPE,CTIME,RTN
- S (UNAME,PS,TNAME,JTYPE,CTIME,RTN)=""
- S (%J,PID,PROCID)=$P(%LINE,U)
+ N UNAME,PS,TNAME,CTIME
+ S (UNAME,PS,TNAME,CTIME)=""
+ N %J,PID,PROCID S (%J,PID,PROCID)=$P(%LINE,U)
  S TNAME=$P(%LINE,U,2) S:TNAME="?" TNAME="" ; TTY, ? if none
  S PS=$P(%LINE,U,3) ; process STATE
  S CTIME=$P(%LINE,U,4) ;cpu time
  N PROCNAME S PROCNAME=$P(%LINE,U,5) ; process name
  I PROCNAME["/" S PROCNAME=$P(PROCNAME,"/",$L(PROCNAME,"/")) ; get actual image name if path
- I PROCNAME'="mumps" S JTYPE=PROCNAME ; If not mumps, then make that the job type
- E  S JTYPE=$P(%LINE,U,6)             ; else, job type is the mumps -dir/-run etc.
- S ACCESS(JTYPE)=JTYPE
  I $D(^XUTL("XUSYS",%J)) S UNAME=$G(^XUTL("XUSYS",%J,"NM"))
  E  S UNAME="unknown"
- S RTN="" ; Routine, get at display time
- S SI=$S(MODE=0:PID,MODE=1:CTIME,1:PID)
- N I
- S I=$GET(SORT(SI))+1,SORT(SI)=I,SORT(SI,I)=PROCID_"~"_UNAME_"~"_PS_"~"_TNAME_"~"_JTYPE_"~"_CTIME_"~"_""_"~"_PID
+ N SI S SI=$S(MODE=0:PID,MODE=1:CTIME,1:PID)
+ N I S I=$GET(SORT(SI))+1
+ S SORT(SI)=I
+ S SORT(SI,I)=PROCID_"~"_UNAME_"~"_PS_"~"_TNAME_"~"_PROCNAME_"~"_CTIME_"~"_""_"~"_PID
  S USERS=USERS+1
  Q
  ;
@@ -349,11 +408,11 @@ VPE(%OLDSTR,%OLDDEL,%NEWDEL) ; $PIECE extract based on variable length delimiter
  ; Sam's entry points
 UNIXLSOF(procs) ; [Public] - Get all processes accessing THIS database (only!)
  ; (return) .procs(n)=unix process number
- ; ZEXCEPT: shell
+ ; ZEXCEPT: shell,parse
  n %cmd s %cmd="lsof -t "_$view("gvfile","DEFAULT")
  i $ZV["CYGWIN" s %cmd="ps -a | grep mumps | grep -v grep | awk '{print $1}'"
  n oldio s oldio=$IO
- o "lsof":(shell="/bin/bash":command=%cmd)::"pipe"
+ o "lsof":(shell="/bin/bash":command=%cmd:parse)::"pipe"
  u "lsof"
  n i f i=1:1 q:$ZEOF  r procs(i):1  i procs(i)="" k procs(i)
  u oldio c "lsof"
@@ -416,57 +475,67 @@ KILL(%J) ; [Private] Kill %J
  o "kill":(shell="/bin/sh":command=%cmd)::"pipe" u "kill" c "kill"
  quit
  ;
-ZJOB ; [Public, Interactive] Examine a specific job -- written by OSEHRA/SMH
-EXAMJOB ;
-VIEWJOB ;
-JOBVIEW ;
+ZJOB(PID) G JOBVIEWZ ; [Public, Interactive] Examine a specific job -- written by OSEHRA/SMH
+EXAMJOB(PID) G JOBVIEWZ ;
+VIEWJOB(PID) G JOBVIEWZ ;
+JOBVIEW(PID) G JOBVIEWZ ;
+JOBVIEWZ ;
+ I $G(PID) D JOBVIEWZ2(PID) QUIT
  D ^ZSY
  N X,DONE
  S DONE=0
  ; Nasty read loop. I hate read loops
- F  R !,"Enter a job number to examine (? for more; ^ to quit): ",X:$G(DTIME,300) D  Q:DONE
+ F  D  Q:DONE
+ . R !,"Enter a job number to examine (^ to quit): ",X:$G(DTIME,300)
  . E  S DONE=1 QUIT
  . I X="^" S DONE=1 QUIT
  . I X="" D ^ZSY QUIT
  . I X["?" D ^ZSY QUIT
  . ;
- . N DONEONE S DONEONE=0
- . N EXAMREAD
- . I X?1.N,$zgetjpi(X,"isprocalive") F  D  Q:DONEONE  ; This is an inner read loop to refresh a process.
- .. N % S %=$$EXAMINEJOBBYPID(X)
- .. I %'=0 W !,"The job didn't respond to examination for 500 ms. You may try again." S DONEONE=1 QUIT
- .. D PRINTEXAMDATA(X,$G(EXAMREAD))
- .. W "Enter to Refersh, V for variables, I for ISVs, K to kill",!
- .. R "L to load variables into your ST and quit, ^ to go back: ",EXAMREAD:$G(DTIME,300)
- .. E  S DONEONE=1
- .. I EXAMREAD="^" S DONEONE=1
- .. I $TR(EXAMREAD,"k","K")="K" D HALTONE(X) S DONEONE=1
- .. I DONEONE W # D ^ZSY
- . Q:DONEONE
- . ;
- . W !,"No such job found. Double check your number"
+ . D JOBVIEWZ2(X)
+ . D ^ZSY
+ QUIT
+ ;
+JOBVIEWZ2(X) ; [Private] View Job Information
+ I X'?1.N W !,"Not a valid job number." Q
+ I '$zgetjpi(X,"isprocalive") W !,"This process does not exist" Q
+ ;
+ N EXAMREAD
+ N DONEONE S DONEONE=0
+ F  D  Q:DONEONE  ; This is an inner read loop to refresh a process.
+ . N % S %=$$EXAMINEJOBBYPID(X)
+ . I %'=0 W !,"The job didn't respond to examination for 305 ms. You may try again." S DONEONE=1 QUIT
+ . D PRINTEXAMDATA(X,$G(EXAMREAD))
+ . W "Enter to Refersh, V for variables, I for ISVs, K to kill",!
+ . R "L to load variables into your ST and quit, ^ to go back: ",EXAMREAD:$G(DTIME,300)
+ . E  S DONEONE=1
+ . I EXAMREAD="^" S DONEONE=1
+ . I $TR(EXAMREAD,"k","K")="K" D HALTONE(X) S DONEONE=1
  QUIT
  ;
 EXAMINEJOBBYPID(%J) ; [$$, Public, Silent] Examine Job by PID; Non-zero output failure
- Q:'$ZGETJPI(X,"isprocalive") -1
- K ^XUTL("XUSYS",%J,"CMD"),^("INTERRUPT"),^("JE"),^("ZMODE"),^("codeline")
+ Q:'$ZGETJPI(%J,"isprocalive") -1
+ K ^XUTL("XUSYS",%J,"CMD"),^("JE")
  S ^XUTL("XUSYS",%J,"CMD")="EXAM"
  D INTRPT(%J)
  N I F I=1:1:5 H .001 Q:$G(^XUTL("XUSYS",%J,"JE","COMPLETE"))
  I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) H .2
+ I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) H .1
  I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) Q -1
  QUIT 0
  ;
 PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
- ; ^XUTL("XUSYS",8563,"INTERRUPT")="GETTASK+3^%ZTMS1"
+ ; ^XUTL("XUSYS",8563,"JE","INTERRUPT")="GETTASK+3^%ZTMS1"
  ; ^XUTL("XUSYS",8563,"JE","G",0)="GLD:*,REG:*,SET:25610,KIL:593,GET:12284,...
- ; ^XUTL("XUSYS",8563,"ZMODE")="OTHER"
+ ; ^XUTL("XUSYS",8563,"JE","ZMODE")="OTHER"
  N ZSY M ZSY=^XUTL("XUSYS",%J)
  ;
  N BOLD S BOLD=$C(27,91,49,109)
  N RESET S RESET=$C(27,91,109)
  N UNDER S UNDER=$C(27,91,52,109)
  N DIM S DIM=$$AUTOMARG()
+ ;
+ I $TR(FLAG,"d","D")="D" D DEBUG(%J)
  ;
  ; List Variables?
  I $TR(FLAG,"v","V")="V" D  QUIT
@@ -487,7 +556,7 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  ; Normal Display: Job Info, Stack, Locks, Devices
  W #
  W UNDER,"JOB INFORMATION FOR "_%J," (",$ZDATE(ZSY(0),"YYYY-MON-DD 24:60:SS"),")",RESET,!
- W BOLD,"AT: ",RESET,ZSY("INTERRUPT"),": ",ZSY("codeline"),!!
+ W BOLD,"AT: ",RESET,ZSY("JE","INTERRUPT"),": ",ZSY("JE","codeline"),!!
  ;
  N CNT S CNT=1
  W BOLD,"Stack: ",RESET,!
@@ -499,7 +568,7 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  . I PLACE'["GTM$DMOD" W PLACE,?40,$T(@PLACE)
  . W !
  . S CNT=CNT+1
- W CNT,". ",ZSY("INTERRUPT"),":",?40,ZSY("codeline"),!
+ W CNT,". ",ZSY("JE","INTERRUPT"),":",?40,ZSY("JE","codeline"),!
  ;
  W !
  W BOLD,"Locks: ",RESET,!
@@ -508,12 +577,80 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  W !
  W BOLD,"Devices: ",RESET,!
  N D F D=0:0 S D=$O(ZSY("JE","D",D)) Q:'D  W ZSY("JE","D",D),!
+ ;
+ W !
+ W BOLD,"Breakpoints: ",RESET,!
+ N B F B=0:0 S B=$O(ZSY("JE","B",B)) Q:'B  W ZSY("JE","B",B),!
+ ;
+ W !
+ W BOLD,"Global Stats for default region: ",RESET,!
+ N G S G=""
+ N SLOTS S SLOTS=+DIM\15
+ N SLOT S SLOT=0
+ F  S G=$O(ZSY("JE","GSTAT",G)) Q:G=""  D
+ . I G="GLD" QUIT
+ . N V S V=ZSY("JE","GSTAT",G)
+ . I V>9999 S V=$J(V/1024,"",0)_"k"
+ . I V>9999,V["k" S V=$J(V/1024,"",0)_"m"
+ . W ?(SLOT*15),G,": ",V," "
+ . S SLOT=SLOT+1
+ . I SLOT+1>SLOTS S SLOT=0 W !
+ W !!
+ ;
+ W BOLD,"String Pool (size,currently used,freed): ",RESET,ZSY("JE","SPOOL"),!!
  QUIT
  ;
 LOADST ; [Private] Load the symbol table into the current process
  KILL
  N V F V=0:0 S V=$O(^TMP("ZSY",$J,V)) Q:'V  S @^(V)
  K ^TMP("ZSY",$J)
+ QUIT
+ ;
+DEBUG(%J) ; [Private] Debugging logic
+ Q:'$ZGETJPI(%J,"isprocalive") -1
+ K ^XUTL("XUSYS",%J,"CMD"),^("JE")
+ S ^XUTL("XUSYS",%J,"CMD")="DEBUG"
+ D INTRPT(%J)
+ N I F I=1:1:5 H .001 Q:$G(^XUTL("XUSYS",%J,"JE","COMPLETE"))
+ I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) H .2
+ I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) H .1
+ I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) Q -1
+ N ZSY M ZSY=^XUTL("XUSYS",%J)
+ ;
+ N BOLD S BOLD=$C(27,91,49,109)
+ N RESET S RESET=$C(27,91,109)
+ N UNDER S UNDER=$C(27,91,52,109)
+ N DIM S DIM=$$AUTOMARG()
+ ;
+ ; Normal Display: Job Info, Stack, Locks, Devices
+ W #
+ W UNDER,"JOB INFORMATION FOR "_%J," (",$ZDATE(ZSY(0),"YYYY-MON-DD 24:60:SS"),")",RESET,!
+ W BOLD,"AT: ",RESET,ZSY("JE","INTERRUPT"),": ",ZSY("JE","codeline"),!!
+ ;
+ N CNT S CNT=1
+ W BOLD,"Stack: ",RESET,!
+ ; Stack is funny -- print just to $ZINTERRUPT
+ N S F S=$O(ZSY("JE","R"," "),-1):-1:1 Q:ZSY("JE","R",S)["$ZINTERRUPT"  D
+ . N PLACE S PLACE=$P(ZSY("JE","R",S),":")
+ . I $E(PLACE)=" " QUIT  ; GTM adds an extra level sometimes for display -- messes me up
+ . W CNT,". "
+ . I PLACE'["GTM$DMOD" W PLACE,?40,$T(@PLACE)
+ . W !
+ . S CNT=CNT+1
+ W CNT,". ",ZSY("JE","INTERRUPT"),":",?40,ZSY("JE","codeline"),!
+ ;
+ W !
+ W BOLD,"Locks: ",RESET,!
+ N L F L=0:0 S L=$O(ZSY("JE","L",L)) Q:'L  W ZSY("JE","L",L),!
+ ;
+ W !
+ W BOLD,"Devices: ",RESET,!
+ N D F D=0:0 S D=$O(ZSY("JE","D",D)) Q:'D  W ZSY("JE","D",D),!
+ W !
+ W BOLD,"Breakpoints: ",RESET,!
+ N B F B=0:0 S B=$O(ZSY("JE","B",B)) Q:'B  W ZSY("JE","B",B),!
+ ;
+ n x r "press key to continue",x
  QUIT
  ;
 AUTOMARG() ;RETURNS IOM^IOSL IF IT CAN and resets terminal to those dimensions; GT.M
