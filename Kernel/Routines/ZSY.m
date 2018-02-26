@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-18  7:55 PM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-26  10:53 AM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -507,7 +507,9 @@ JOBVIEWZ2(X) ; [Private] View Job Information
  . I %'=0 W !,"The job didn't respond to examination for 305 ms. You may try again." S DONEONE=1 QUIT
  . D PRINTEXAMDATA(X,$G(EXAMREAD))
  . W "Enter to Refersh, V for variables, I for ISVs, K to kill",!
- . R "L to load variables into your ST and quit, ^ to go back: ",EXAMREAD:$G(DTIME,300)
+ . W "L to load variables into your ST and quit, ^ to go back: ",!
+ . W "D to debug (broken), Z to zshow all data for debugging."
+ . R EXAMREAD:$G(DTIME,300)
  . E  S DONEONE=1
  . I EXAMREAD="^" S DONEONE=1
  . I $TR(EXAMREAD,"k","K")="K" D HALTONE(X) S DONEONE=1
@@ -520,7 +522,7 @@ EXAMINEJOBBYPID(%J) ; [$$, Public, Silent] Examine Job by PID; Non-zero output f
  D INTRPT(%J)
  N I F I=1:1:5 H .001 Q:$G(^XUTL("XUSYS",%J,"JE","COMPLETE"))
  I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) H .2
- I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) H .1
+ I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) H .2
  I '$G(^XUTL("XUSYS",%J,"JE","COMPLETE")) Q -1
  QUIT 0
  ;
@@ -535,7 +537,11 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  N UNDER S UNDER=$C(27,91,52,109)
  N DIM S DIM=$$AUTOMARG()
  ;
+ ; Debug
  I $TR(FLAG,"d","D")="D" D DEBUG(%J)
+ ;
+ ; Show all data
+ I $TR(FLAG,"z","Z")="Z" ZWRITE ZSY QUIT
  ;
  ; List Variables?
  I $TR(FLAG,"v","V")="V" D  QUIT
@@ -556,7 +562,7 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  ; Normal Display: Job Info, Stack, Locks, Devices
  W #
  W UNDER,"JOB INFORMATION FOR "_%J," (",$ZDATE(ZSY(0),"YYYY-MON-DD 24:60:SS"),")",RESET,!
- W BOLD,"AT: ",RESET,ZSY("JE","INTERRUPT"),": ",ZSY("JE","codeline"),!!
+ W BOLD,"AT: ",RESET,ZSY("JE","INTERRUPT"),": ",$G(ZSY("JE","codeline")),!!
  ;
  N CNT S CNT=1
  W BOLD,"Stack: ",RESET,!
@@ -568,7 +574,7 @@ PRINTEXAMDATA(%J,FLAG) ; [Private] Print the exam data
  . I PLACE'["GTM$DMOD" W PLACE,?40,$T(@PLACE)
  . W !
  . S CNT=CNT+1
- W CNT,". ",ZSY("JE","INTERRUPT"),":",?40,ZSY("JE","codeline"),!
+ W CNT,". ",ZSY("JE","INTERRUPT"),":",?40,$G(ZSY("JE","codeline")),!
  ;
  W !
  W BOLD,"Locks: ",RESET,!
