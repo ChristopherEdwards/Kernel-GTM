@@ -1,4 +1,4 @@
-%ZOSV ;VEN/SMH,KRM/CJE,FIS/KSB - View commands & special functions. ;2017-11-30  3:39 PM
+%ZOSV ;VEN/SMH,KRM/CJE,FIS/KSB - View commands & special functions. ;2018-02-26  1:05 PM
  ;;8.0;KERNEL;**275,425,499,10001,10002**;Jul 10, 1995;Build 18
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine authored by Department of Veterans Affairs
@@ -106,7 +106,7 @@ PRGMODE ;Drop into direct mode
  HALT
  ;
 PROGMODE() ; In Application mode
- Q 0 ; This was used to control UCI switching, has no meaning in GT.M
+ Q 1 ; This was used to control UCI switching, has no meaning in GT.M
  ;
 UCI ;
  S Y=^%ZOSF("PROD") Q
