@@ -1,4 +1,4 @@
-ZOSVGUT1 ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2017-11-30  3:26 PM
+ZOSVGUT1 ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2018-04-05  1:57 PM
  ;;8.0;KERNEL;**10001,10002**;Aug 28, 2013;Build 15
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Authored by Sam Habiel & Christopher Edwards 2014-2016.
@@ -6,7 +6,7 @@ ZOSVGUT1 ;KRM/CJE,VEN/SMH - GT.M Kernel unit tests ;2017-11-30  3:26 PM
  ; makes it easy to run tests simply by running this routine and
  ; insures that %ut will be run only where it is present
  ;
- I $T(EN^%ut)'="" D EN^%ut($T(+0),3)
+ I $T(EN^%ut)'="" D EN^%ut($T(+0),3,1)
  Q
  ;
 STARTUP ;
@@ -18,7 +18,7 @@ COV ; [Coverage of Unit Tests] Must use M-Unit 1.5 for this!
  S (NMSPS("%ZOSV*"),NMSPS("%ZISH"),NMSPS("ZTMGRSET"))=""
  S (NMSPS("XLFNSLK"),NMSPS("XLFIPV"),NMSPS("XUSHSH"),NMSPS("XQ82"))=""
  S (NMSPS("ZSY"))=""
- D COV^%ut1(.NMSPS,"D ^"_$T(+0),1)
+ D COV^%ut(.NMSPS,"D ^"_$T(+0),1)
  QUIT
  ;
  ;
@@ -399,7 +399,6 @@ ZSY ; @TEST Run System Status
  D CHKTF^%ut(nProcs>nProcsAfter)
  D CHKTF^%ut(nProcsAfter=1)
  D ^ZTMB ; bring it back up.
- D IMAGE^ZSY
  D LW^ZSY
  D ERR^ZSY
  D UERR^ZSY
