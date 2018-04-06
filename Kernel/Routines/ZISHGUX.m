@@ -1,5 +1,5 @@
-%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2017-11-30  1:36 PM
- ;;8.0;KERNEL;**275,306,385,524,10001**;Jul 10, 1995;
+%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2018-04-05  4:39 PM
+ ;;8.0;KERNEL;**275,306,385,524,10001,10002**;Jul 10, 1995;
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine authored by Department of Veterans Affairs
  ; EPs OPEN,DEL1,CD,PWD,MAXREC authored by Sam Habiel 2016.
@@ -109,7 +109,7 @@ DEL1(%ZX3) ;ef,SR. Delete one file
  D SPLIT(%ZX3,.%ZI1,.%ZI2) S %ZI2(%ZI2)=""
  Q $$DEL(%ZI1,$NA(%ZI2))
  ;
-SPLIT(%I,%O1,%O2) ;Split to path,file
+SPLIT(%I,%O1,%O2) ;[Public] Split to path,file
  N %D,D
  S %D="/",%O1="",%O2=""
  S D=$L(%I,%D),%O1=$P(%I,%D,1,D-1),%O2=$P(%I,%D,D)
@@ -182,6 +182,41 @@ DEFDIR(DF) ;ef. Default Dir and frmt
  I DF="" S $EC=",U-INVALID-DIRECTORY,"
  ;
  Q DF
+ ;
+MKDIR(DIR) ; ef,SR. *10002* Make directory
+ N % S %=$$RETURN^%ZOSV("mkdir -p "_DIR,1)
+ Q %
+ ;
+SIZE(DIR,FILE) ; ef,SR. *10002* Get Size of a File
+ Q $$RETURN^%ZOSV("stat -c%s "_$$DEFDIR(DIR)_FILE)
+ ;
+WGETSYNC(server,remoteDir,localDir,filePatt,port,isTLS) ; ef,SR. *10002* Sync remote directory
+ s port=$g(port,443)
+ s isTLS=$g(isTLS,1)
+ ;
+ i $e(remoteDir)'="/" s remoteDir="/"_remoteDir
+ ;
+ n url s url="http"
+ i isTLS s url=url_"s"
+ s url=url_"://"_server_":"_port_remoteDir
+ ;
+ ; -r recursive
+ ; -N Turn on time-stamping
+ ; -nd Do not create directories
+ ; -np Do not follow follow
+ ; -A What to accept (file pattern)
+ ; -P where to save
+ ;
+ n %cmd s %cmd="wget -rNndp -A '"_filePatt_"' '"_url_"' -P "_localDir
+ n % s %=$$RETURN^%ZOSV(%cmd,1)
+ i % quit %
+ ;
+ ; comment
+ n %cmd s %cmd="dos2unix "_localDir_"/"_filePatt
+ n % s %=$$RETURN^%ZOSV(%cmd,1)
+ i % quit %
+ ;
+ quit %
  ;
 STATUS() ;ef,SR. Return EOF status
  U $I
@@ -280,7 +315,7 @@ MAXREC(GLO) ; [Public] Maximum Record Size for a Global
  ; Global passed by name
  N REGION S REGION=$VIEW("REGION",$NA(@GLO))
  I REGION="" S $EC=",U-ERROR,"
- I $T(^%PEEKBYNAME)]"" Q $$^%PEEKBYNAME("gd_region.max_rec_size","DEFAULT")
+ I $T(^%PEEKBYNAME)]"" Q $$^%PEEKBYNAME("gd_region.max_rec_size",REGION)
  I $T(^%DSEWRAP)]"" N FDUMP D  Q FDUMP(REGION,"Maximum record size")
  . D DUMP^%DSEWRAP(REGION,.FDUMP,"fileheader","all")
  ;

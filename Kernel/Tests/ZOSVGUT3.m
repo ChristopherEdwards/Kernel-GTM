@@ -1,4 +1,4 @@
-ZOSVGUT3 ; VEN/SMH - Unit Tests for GT.M VistA Port;2017-11-30  2:20 PM
+ZOSVGUT3 ; VEN/SMH - Unit Tests for GT.M VistA Port;2018-04-05  4:27 PM
  ;;8.0;KERNEL;**10002**;;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Authored by Sam Habiel 2017.
@@ -388,6 +388,32 @@ LISTRPMS ; @TEST Test LIST RPMS Version (2nd par is by value not by name)
  F  S I=$O(%RET(I)) Q:I=""  S CNT=CNT+1
  D CHKTF^%ut(CNT>20000,4)
  D CHKEQ^%ut(%,0) ; Return 0 for success
+ QUIT
+ ;
+SIZE ; @TEST $$SIZE^%ZISH
+ N % S %=$$SIZE^%ZISH("/usr/include/","stdio.h")
+ D CHKTF^%ut(%>1000)
+ QUIT
+ ;
+MKDIR ; @TEST $$MKDIR^%ZISH
+ N % S %=$$RETURN^%ZOSV("rm -r /tmp/foo/boo",1)
+ D CHKTF^%ut(%=0)
+ N % S %=$$MKDIR^%ZISH("/tmp/foo/boo")
+ D CHKTF^%ut(%=0)
+ N % S %=$$RETURN^%ZOSV("stat /tmp/foo/boo",1)
+ D CHKTF^%ut(%=0)
+ QUIT
+ ;
+WGETSYNC ; @TEST $$WGETSYNC^%ZISH on NDF DAT files
+ N % S %=$$WGETSYNC^%ZISH("foia-vista.osehra.org","Patches_By_Application/PSN-NATIONAL DRUG FILE (NDF)/PPS_DATS/","/tmp/foo/boo","*.DAT*")
+ D CHKTF^%ut(%=0)
+ N A,CURR S A("*")=""
+ N % S %=$$LIST^%ZISH("/tmp/foo/boo","A","CURR")
+ D CHKTF^%ut($D(CURR("PPS_0PRV_1NEW.DAT")))
+ ; 
+ ; Do it again. Should be faster.
+ N % S %=$$WGETSYNC^%ZISH("foia-vista.osehra.org","Patches_By_Application/PSN-NATIONAL DRUG FILE (NDF)/PPS_DATS/","/tmp/foo/boo","*.DAT*")
+ D CHKTF^%ut($D(CURR("PPS_0PRV_1NEW.DAT")))
  QUIT
  ;
 SEND ; @TEST Test SEND^%ZISH (NOOP)
