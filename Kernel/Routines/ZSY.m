@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-02-26  10:53 AM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-04-09  4:41 PM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -326,7 +326,7 @@ DEV(DEV,PID) ; [Private] Device Processing
  ;
 DEVSEL(DEV) ; [Private] Select Device to Print
  N DEVTYP S DEVTYP=$O(DEV(" "))
- Q:DEVTYP=""
+ Q:DEVTYP="" ""
  I DEVTYP="4JOB" Q "0"
  I DEVTYP="2SOCK" Q "S"_DEV(DEVTYP)
  I DEVTYP="3TERM" Q DEV(DEVTYP)
