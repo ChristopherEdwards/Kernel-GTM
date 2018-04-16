@@ -1,4 +1,4 @@
-ZOSVGUT3 ; VEN/SMH - Unit Tests for GT.M VistA Port;2018-04-05  4:27 PM
+ZOSVGUT3 ; VEN/SMH - Unit Tests for GT.M VistA Port;2018-04-16  11:59 AM
  ;;8.0;KERNEL;**10002**;;Build 11
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Authored by Sam Habiel 2017.
@@ -405,6 +405,7 @@ MKDIR ; @TEST $$MKDIR^%ZISH
  QUIT
  ;
 WGETSYNC ; @TEST $$WGETSYNC^%ZISH on NDF DAT files
+ N SEC1 S SEC1=$P($H,",",2)
  N % S %=$$WGETSYNC^%ZISH("foia-vista.osehra.org","Patches_By_Application/PSN-NATIONAL DRUG FILE (NDF)/PPS_DATS/","/tmp/foo/boo","*.DAT*")
  D CHKTF^%ut(%=0)
  N A,CURR S A("*")=""
@@ -412,8 +413,22 @@ WGETSYNC ; @TEST $$WGETSYNC^%ZISH on NDF DAT files
  D CHKTF^%ut($D(CURR("PPS_0PRV_1NEW.DAT")))
  ; 
  ; Do it again. Should be faster.
+ N SEC2 S SEC2=$P($H,",",2)
  N % S %=$$WGETSYNC^%ZISH("foia-vista.osehra.org","Patches_By_Application/PSN-NATIONAL DRUG FILE (NDF)/PPS_DATS/","/tmp/foo/boo","*.DAT*")
+ N A,CURR S A("*")=""
+ N % S %=$$LIST^%ZISH("/tmp/foo/boo","A","CURR")
  D CHKTF^%ut($D(CURR("PPS_0PRV_1NEW.DAT")))
+ ;
+ ; Remove a file and download again
+ N SEC3 S SEC3=$P($H,",",2)
+ N % S %=$$RETURN^%ZOSV("rm /tmp/foo/boo/PPS_2PRV_3NEW.DAT",1)
+ D CHKTF^%ut(%=0)
+ N % S %=$$WGETSYNC^%ZISH("foia-vista.osehra.org","Patches_By_Application/PSN-NATIONAL DRUG FILE (NDF)/PPS_DATS/","/tmp/foo/boo","*.DAT*")
+ N A,CURR S A("*")=""
+ N % S %=$$LIST^%ZISH("/tmp/foo/boo","A","CURR")
+ D CHKTF^%ut($D(CURR("PPS_2PRV_3NEW.DAT")))
+ ;
+ D CHKTF^%ut((SEC3-SEC2)<(SEC2-SEC1))
  QUIT
  ;
 SEND ; @TEST Test SEND^%ZISH (NOOP)
