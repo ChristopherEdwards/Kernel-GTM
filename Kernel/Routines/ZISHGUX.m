@@ -1,4 +1,4 @@
-%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2018-04-05  4:39 PM
+%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2018-04-16  12:49 PM
  ;;8.0;KERNEL;**275,306,385,524,10001,10002**;Jul 10, 1995;
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine authored by Department of Veterans Affairs
@@ -207,11 +207,22 @@ WGETSYNC(server,remoteDir,localDir,filePatt,port,isTLS) ; ef,SR. *10002* Sync re
  ; -A What to accept (file pattern)
  ; -P where to save
  ;
- n %cmd s %cmd="wget -rNndp -A '"_filePatt_"' '"_url_"' -P "_localDir
+ ; Get compressed file from remote source
+ n %cmd s %cmd="wget --header='Accept-Encoding: gzip' -rNndp -A '"_filePatt_"' '"_url_"' -P "_localDir
  n % s %=$$RETURN^%ZOSV(%cmd,1)
  i % quit %
  ;
- ; comment
+ ; Rename them to .gz if they are really compressed
+ n %cmd s %cmd="for f in `file "_localDir_"/* | grep gzip | cut -d':' -f1`; do mv $f $f.gz; done"
+ n % s %=$$RETURN^%ZOSV(%cmd,1)
+ i % quit %
+ ;
+ ; gunzip (but don't warn if there is nothing to do: -q)
+ n %cmd s %cmd="gzip -dq "_localDir_"/*"
+ n % s %=$$RETURN^%ZOSV(%cmd,1)
+ i % quit %
+ ;
+ ; dos2unix
  n %cmd s %cmd="dos2unix "_localDir_"/"_filePatt
  n % s %=$$RETURN^%ZOSV(%cmd,1)
  i % quit %
