@@ -1,8 +1,9 @@
-%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2018-04-16  12:49 PM
- ;;8.0;KERNEL;**275,306,385,524,10001,10002**;Jul 10, 1995;
+%ZISH ;ISF/AC,RWF,VEN/SMH - GT.M for Unix Host file Control ;2018-04-20  10:01 AM
+ ;;8.0;KERNEL;**275,306,385,524,10001,10002**;Jul 10, 1995;Build 20
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine authored by Department of Veterans Affairs
- ; EPs OPEN,DEL1,CD,PWD,MAXREC authored by Sam Habiel 2016.
+ ; EPs OPEN,DEL1,CD,PWD,MAXREC,MKDIR,SIZE,WGETSYNC,DF,SEND,SENDTO1 
+ ; --> authored by Sam Habiel 2016-2018.
  ; EPs MV,DEFDIR,FTG,READNXT,MGTF have bugs fixed by Sam Habiel 2016.
  ; 
  ;
@@ -86,6 +87,7 @@ DELVAL ; [Internal] Delete by Val
  ; /end RPMS implementation
  ;
 DELNAME ; [Internal] Delete by Name
+ ; ZEXCEPT: %ZISH,%ZISHLGR,%ZX,X,%ZXDEL,%ZX1,%ZX2
  ; %ZX2 is a named array (VistA format)
  F  S %ZISH=$O(@%ZX2@(%ZISH)) Q:%ZISH=""  D
  . N $ETRAP S $ETRAP="D DELERR^%ZISH"
