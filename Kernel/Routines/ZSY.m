@@ -1,9 +1,9 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-04-09  4:41 PM
- ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 11
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-04-20  10:27 AM
+ ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 20
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
  ; Rewritten by KS Bhaskar and Sam Habiel 2005-2015
- ; Sam: JOBEXAM, WORK, USHOW, UNIX, UNIXLSOF, INTRPT, INTRPTALL, HALTALL, ZJOB
+ ; Sam: JOBEXAM, WORK, USHOW, UNIX, UNIXLSOF, INTRPT, INTRPTALL, HALTALL, ZJOBff
  ; Bhaskar provided pipe implementations of various commands.
  ;GT.M/VA %SY utility - status display
  ;
@@ -120,12 +120,8 @@ JOBEXAM(%ZPOS) ; [Public; Called by ^ZU]
  ; Done. We can tell others we are ready
  SET ^XUTL("XUSYS",$J,"JE","COMPLETE")=1
  ;
- I $P($G(^XUTL("XUSYS",$J,"CMD")),U)="DEBUG" D
- . S $ETRAP="I $ZJOBEXAM($J)"
- . S $ZSTEP="F  H 1"
- . I %ZPOS'["GTM$DMOD" ZB GO+25^XMKPLQ
- ;
- ; TODO: DEBUG
+ ; TODO: IMPLEMENT DEBUG
+ I $P($G(^XUTL("XUSYS",$J,"CMD")),U)="DEBUG" QUIT  ; **NOT IMPLEMENTED**
  ;
  ; Restore old IO and $R
  U OLDIO
@@ -150,8 +146,9 @@ WORK(MODE,FILTER) ; [Private] Main driver, Will release lock
  S I=0 F  S I=$O(^XUTL("XUSYS",I)) Q:'I  K ^XUTL("XUSYS",I,"CMD"),^("JE")
  ;
  ; Counts; Turn on Ctrl-C.
+ ; ZEXCEPT: CTRAP,NOESCAPE,NOFILTER
  N USERS S USERS=0
- U $P:CTRAP=$C(3)
+ U $P:(CTRAP=$C(3):NOESCAPE:NOFILTER)
  ;
  ;Go get the data
  D UNIX(MODE,.USERS,.SORT)
@@ -480,6 +477,8 @@ EXAMJOB(PID) G JOBVIEWZ ;
 VIEWJOB(PID) G JOBVIEWZ ;
 JOBVIEW(PID) G JOBVIEWZ ;
 JOBVIEWZ ;
+ ; ZEXCEPT: CTRAP,NOESCAPE,NOFILTER,PID
+ U $P:(CTRAP=$C(3):NOESCAPE:NOFILTER)
  I $G(PID) D JOBVIEWZ2(PID) QUIT
  D ^ZSY
  N X,DONE
@@ -661,6 +660,7 @@ DEBUG(%J) ; [Private] Debugging logic
  ;
 AUTOMARG() ;RETURNS IOM^IOSL IF IT CAN and resets terminal to those dimensions; GT.M
  ; ZEXCEPT: APC,TERM,NOECHO,WIDTH
+ I $PRINCIPAL'["/dev/" quit:$Q "" quit
  U $PRINCIPAL:(WIDTH=0)
  N %I,%T,ESC,DIM S %I=$I,%T=$T D
  . ; resize terminal to match actual dimensions
