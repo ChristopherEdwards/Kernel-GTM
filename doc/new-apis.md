@@ -4,7 +4,7 @@ Introduction
 The following APIs are new:
 
  | API Name           | Released In    | Brief Description                           | Allowed Callers                   |
- | ------------------ | -------------- | ------------------------------------------------------------------------------- |
+ | ------------------ | -------------- | ------------------------------------------- | --------------------------------- |
  | $$RTNDIR^%ZOSV()   | XU\*8.0\*10001 | Returns the VistA Routine Directory in GT.M | Kernel Applications Only          |
  | $$RETURN^%ZOSV()   | XU\*8.0\*10001 | Executes an OS command                      | Kernel Applications Only          |
  | $$DEL1^%ZISH()     | XU\*8.0\*10001 | Simplified file deletion API                | Public                            |
