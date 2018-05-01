@@ -1,4 +1,4 @@
-XLFSHAN ;ISL/PKR SHA secure hash routines. ;2018-04-25  5:29 PM
+XLFSHAN ;ISL/PKR SHA secure hash routines. ;2018-05-01  9:24 AM
  ;;8.0;KERNEL;**657**;Jul 10, 1995;Build 9
  ;Per VA Directive 6402, this routine should not be modified.
  Q
@@ -201,11 +201,17 @@ LSHANGUX ; [Private, GT.M] Contributed K.S. Bhaskar. IA #6157
  ; ZEXCEPT: HASHLEN,MSUB,NBLOCKS
  N OLDIO,IND,SHA
  S OLDIO=$IO
+ S:HASHLEN=160 HASHLEN=1
  ;name of program for 160 bit hash is sha1sum; other names use actual
  ;hash size
  ; 
  ; ZEXCEPT: SHELL,COMMAND,STREAM,NOWRAP,EOF
- S:HASHLEN=160 HASHLEN=1
+ i $ztrnlnm("GTMXC_openssl")'="" d  quit SHA
+ . d &openssl.init("sha"_HASHLEN)
+ . F IND=1:1:NBLOCKS d &openssl.add(^TMP($J,MSUB,IND))
+ . d &openssl.finish(.SHA)
+ ;
+ ; command line way - takes 5 seconds
  O "SHA":(SHELL="/bin/sh":COMMAND="sha"_HASHLEN_"sum":STREAM:NOWRAP)::"PIPE" U "SHA"
  F IND=1:1:NBLOCKS W ^TMP($J,MSUB,IND) S $X=0
  W /EOF R SHA
@@ -265,10 +271,12 @@ SHANONT ; [Private, Cache]
 SHANGUX ; [Private, GT.M] - Contributed by KS Bhaskar
  ; ZEXCEPT: HASHLEN,MESSAGE
  ; ZEXCEPT: STREAM,NOWRAP,SHELL,COMMAND,EOF
- N OLDIO S OLDIO=$IO
  S:HASHLEN=160 HASHLEN=1 ; name of program for 160 bit hash is sha1sum
- ;other names use actual hash size
  N SHA
+ i $ztrnlnm("GTMXC_openssl")'="" d  quit SHA
+ . d &openssl.md(MESSAGE,"sha"_HASHLEN,.SHA)
+ N OLDIO S OLDIO=$IO
+ ;other names use actual hash size
  O "SHA":(SHELL="/bin/sh":COMMAND="sha"_HASHLEN_"sum":STREAM:NOWRAP)::"PIPE" U "SHA"
  W MESSAGE S $X=0 W /EOF R SHA
  U OLDIO C "SHA"
@@ -492,43 +500,6 @@ TDATA5 ; @DATA
  ;;hash:512:E718483D 0CE76964 4E2E42C7 BC15B463 8E1F98B1 3B204428 5632A803 AFA973EB DE0FF244 877EA60A 4CB0432C E577C31B EB009C5C 2C49AA2E 4EADB217 AD8CC09B
  ;;-1
  ;
-TESTS ;
- N END,HASH,HASHLEN,IND,JND,LEN,LINE,MSG,NBLOCKS,REFHASH,REPS,START,STR
- W !,"Starting the tests."
- F IND=1:1 S LINE=$P($T(TESTVEC+IND),";;",2) Q:LINE=-1  D
- . I LINE["msg" D
- .. S STR=$P(LINE,":",2),REPS=$P(LINE,":",3)
- .. S MSG=$S(STR="":"the null string",1:STR)
- .. W !!!,"The message is: ",MSG
- .. I REPS>1 W !,"Repeated ",REPS," times."
- .. S LEN=$L(STR)*REPS
- .. W !,"Its length is: ",LEN
- .. D TMPLOAD("XLFMSG",1024,STR,REPS,.NBLOCKS)
- . I LINE["hash" D
- .. S HASHLEN=$P(LINE,":",2),REFHASH=$P(LINE,":",3)
- .. W !!,"Hash length = ",HASHLEN
- .. W !,"Hash is: ",REFHASH
- .. S REFHASH=$TR(REFHASH," ","")
- .. I LEN<32767 D
- ... S START=$$CPUTIME^XLFSHAN
- ... S HASH=$$SHAN^XLFSHAN(HASHLEN,STR)
- ... S END=$$CPUTIME^XLFSHAN
- ... I HASH=REFHASH W !,"SHAN test passed."
- ... E  D
- .... W !,"SHAN test failed.",!,"    Got: "
- .... F JND=1:1:$L(HASH) W $E(HASH,JND) I (JND#8)=0 W " "
- ... W !," Elapsed time: ",$$ETIMEMS^XLFSHAN(START,END)
- .. S START=$$CPUTIME^XLFSHAN
- .. S HASH=$$LSHAN^XLFSHAN(HASHLEN,"XLFMSG",NBLOCKS)
- .. S END=$$CPUTIME^XLFSHAN
- .. I HASH=REFHASH W !,"LSHAN test passed."
- .. E  D
- ... W !,"LSHAN test failed.",!,"    Got: "
- ... F JND=1:1:$L(HASH) W $E(HASH,JND) I (JND#8)=0 W " "
- .. W !," Elapsed time: ",$$ETIMEMS^XLFSHAN(START,END)
- K ^TMP($J,"XLFMSG")
- Q
- ;
  ;=============================
 TMPLOAD(SUB,BLKSIZE,STR,REPS,NBLOCKS) ;Load the ^TMP global.
  N STRLEN
@@ -545,6 +516,3 @@ TMPLOAD(SUB,BLKSIZE,STR,REPS,NBLOCKS) ;Load the ^TMP global.
  I $L(TEMP)>0 S NBLOCKS=NBLOCKS+1,^TMP($J,SUB,NBLOCKS)=TEMP
  Q
  ;
- ;=============================
- ;-1 terminates the test vectors.
-TESTVEC ;
