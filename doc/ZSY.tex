@@ -1,0 +1,157 @@
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist
+
+
+\documentclass[]{article}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{lscape}
+\usepackage[left=3cm,right=2cm,top=2.5cm,bottom=2cm]{geometry}
+\usepackage{pdflscape}
+\usepackage{multicol}
+\usepackage [english]{babel}
+\usepackage [autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
+%opening
+\title{ZSY: System Status for GT.M/YottaDB}
+\author{Sam Habiel, Pharm.D.}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper describes the updates and new functionality in the System Status tools for GT.M/YottaDB.
+\end{abstract}
+
+\section{Introduction}
+The ZSY Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain. Its original purpose was to provide an emulation of \%SS in Intersystems Cache. It has been almost entirely re-written and much new functionality has been introduced. While developed with VistA/RPMS in mind, it can be used on any GT.M/YottaDB system with a \$ZINTERRUPT of "I \$\$JOBEXAM\^{}ZSY(\$ZPOS)"
+
+\section{Invocation}
+
+Enter \texttt{D \^{}ZSY} on direct mode. This by default sorts by Process ID. You can use \texttt{D QUERY\^{}ZSY} to query by cpu time.
+
+\section{Output}
+The output changes based on the size of the screen: $\leq$ 80 columns; 80 columns--130 columns; and $>$130 columns.
+
+\definecolor{light-gray}{gray}{0.95}
+
+\lstset{ 
+	backgroundcolor=\color{light-gray},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+	basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+	breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+	breaklines=false,                 % sets automatic line breaking
+	captionpos=b,                    % sets the caption-position to bottom
+	keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+	rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+	showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+	showstringspaces=false,          % underline spaces within strings only
+	showtabs=false,                  % show tabs within strings adding particular underscores
+	caption=80 column output
+}
+
+\begin{lstlisting}
+GT.M System Status users on 24-APR-18 16:03:06 - (stats reflect accessing 
+DEFAULT region ONLY except *)
+PID   PName   Device       Routine            Name                CPU Time
+4257  mumps   /dev/pts/1   INTRPTALL+8^ZSY                        00:00:00
+7369  mumps   BG-0         NEWJOB+5^%ZTM      Taskman ROU 1       00:00:00
+7373  mumps   BG-0         GO+26^XMKPLQ       WVEHR,PATCH INSTALL 00:00:00
+7391  mumps   BG-0         GO+12^XMTDT        WVEHR,PATCH INSTALL 00:00:00
+7397  mumps   BG-0         GETTASK+3^%ZTMS1                       00:00:00
+7403  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7403            00:00:00
+7409  mumps   BG-0         I6+2^%ZTM                              00:00:00
+7411  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7411            00:00:00
+\end{lstlisting}
+%\end{changemargin}
+
+
+\begin{landscape}
+\lstset{
+	caption=130 column output
+}
+\begin{lstlisting}
+GT.M System Status users on 24-APR-18 16:35:06 - (stats reflect accessing DEFAULT region ONLY except *)
+PID   PName   Device       Routine            Name                CPU Time OP/READ   NTR/NTW        NR0123    #L   %LSUCC  %CFAIL
+4257  mumps   /dev/pts/1   INTRPTALL+8^ZSY                        00:00:00 1.14      10/0           0/0/0/0   1    0/0     0/7
+7369  mumps   BG-0         IDLE+3^%ZTM        Taskman ROU 1       00:00:00 493.05    10k/0k         1/0/0/0   0    99.95%  0/426
+7373  mumps   BG-0         GO+26^XMKPLQ       WVEHR,PATCH INSTALL 00:00:00 90.14     1905/12        0/0/0/0   2    9/14    0/33
+7391  mumps   BG-0         GO+12^XMTDT        WVEHR,PATCH INSTALL 00:00:00 59.73     669/12         0/0/0/0   2    9/9     0/23
+7397  mumps   BG-0         GETTASK+3^%ZTMS1                       00:00:00 784.04    19k/2k         1/0/0/0   1    99.96%  0/1977
+7403  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7403            00:00:00 0.00      9766/968       3/0/0/0   1    99.35%  0/973
+7411  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7411            00:00:00 0.00      9738/965       3/1/0/0   1    99.53%  0/970
+7419  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7419            00:00:00 0.00      9717/963       7/3/0/0   1    99.02%  0/967
+7422  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7422            00:00:00 0.00      9678/959       13/0/0/0  1    98.25%  0/970
+\end{lstlisting}
+\lstset{
+	caption=$>$130 column output
+}
+\begin{changemargin}{-0.25in}{-0.25in}
+\begin{lstlisting}
+GT.M System Status users on 24-APR-18 17:05:25 - (stats reflect accessing DEFAULT region ONLY except *)
+PID   PName   Device       Routine            Name                CPU Time OP/READ   NTR/NTW     NR0123    #L   %LSUCC  %CFAIL R MB*   W MB* SP MB*
+4257  mumps   /dev/pts/1   INTRPTALL+8^ZSY                        00:00:00 1.14      10/0        0/0/0/0   1    0/0     0/7    5.66    12.98 0.10
+7369  mumps   BG-0         IDLE+3^%ZTM        Taskman ROU 1       00:00:00 955.95    20k/1k      3/0/0/0   0    99.80%  0/721  2.77    0.68  0.10
+7373  mumps   BG-0         GO+26^XMKPLQ       WVEHR,PATCH INSTALL 00:00:00 166.86    3516/12     0/0/0/0   2    9/14    0/33   3.21    0.03  0.10
+7391  mumps   BG-0         GO+12^XMTDT        WVEHR,PATCH INSTALL 00:00:00 100.64    1119/12     0/0/0/0   2    9/9     0/23   0.23    0.00  0.10
+7397  mumps   BG-0         GETTASK+3^%ZTMS1                       00:00:01 1505.24   37k/4k      2/0/0/0   1    99.96%  81.36% 0.29    2.51  0.10
+7403  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7403            00:00:00 0.00      18k/2k      8/0/0/0   1    99.47%  89.76% 0.00    0.77  0.10
+7411  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7411            00:00:00 0.00      18k/2k      3/1/0/0   1    99.67%  89.79% 0.00    0.73  0.10
+7419  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7419            00:00:00 0.00      18k/2k      19/4/0/0  1    99.09%  89.80% 0.00    0.79  0.10
+7422  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7422            00:00:00 0.00      18k/2k      16/0/0/0  1    98.50%  89.78% 0.00    0.41  0.10
+\end{lstlisting}
+\end{changemargin}
+\end{landscape}
+
+\pagebreak
+\begin{multicols}{2}
+\section{Explanation of Columns}
+
+\subsection{PID}
+This is the Process Number of each process. On GT.M/YottaDB, the process number is the same as job number. This unfortunately is not the same as the Taskman task number.
+
+\subsection{PName}
+Process Name. Most of the time it will be "mumps", but it can be "java", "node" or some other process that is opening the database.
+
+\subsection{Device}
+Consider this listing:
+\lstset{caption=Device}
+\begin{lstlisting}
+Device
+BG-0         
+BG-0         
+BG-0         
+BG-S14823    
+/dev/pts/22  
+BG-0         
+BG-/dev/null
+/dev/null
+\end{lstlisting}
+This shows the currently active device.
+
+The most obvious thing is the "BG". This means that the job is a background job (not launched by a user, but launched originally by a Job command). However, even background jobs can interact with users: The last BG device in this is listing is actually a CPRS session. The process was created using the Job command.
+
+User "Roll and Scroll" sessions will show as /dev/pty/...
+
+Devices with socket listeners will show as BG-Sport, where port is a numeric port number.
+
+BG-0 devices are usually background jobs without devices in Taskman.
+
+Broker jobs originating from xinetd will show a device of /dev/null unless a device is opened.
+
+\subsection{Routine}
+This shows the currently executing line.
+
+\subsection{Name}
+This is either the name of the user from File 200 if the process has a DUZ variable defined; or process name if defined in \^{}XUTL, or nothing otherwise.
+
+\subsection{CPU Time}
+Total CPU time (User + System) as reported by ps.
+
+\subsection{OP/READ}
+Operations/Read: Number of global operations per database block read (DTA+GET+ORD+ZPR+QRY)/DRD
+
+\end{multicols}
+
+\end{document}
