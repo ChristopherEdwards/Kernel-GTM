@@ -1,4 +1,4 @@
-ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-04-20  10:27 AM
+ZSY ;ISF/RWF,VEN/SMH - GT.M/VA system status display ;2018-05-02  4:00 PM
  ;;8.0;KERNEL;**349,10001,10002**;Jul 10, 1995;Build 20
  ; Submitted to OSEHRA in 2017 by Sam Habiel for OSEHRA
  ; Original Routine of unknown provenance -- was in unreleased VA patch XU*8.0*349 and thus perhaps in the public domain.
@@ -180,7 +180,8 @@ HEADER(TAB) ;Display Header
  ; ZEXCEPT: AB
  W #
  S IOM=+$$AUTOMARG
- W !,"GT.M System Status users on ",$$DATETIME($H)," - (stats reflect accessing DEFAULT region ONLY except *)"
+ W !,"GT.M System Status users on ",$$DATETIME($H)
+ W:IOM>80 " - (stats reflect accessing DEFAULT region ONLY except *)"
  S TAB(0)=0,TAB(1)=6,TAB(2)=14,TAB(3)=18,TAB(4)=27,TAB(5)=46,TAB(6)=66
  S TAB(7)=75,TAB(8)=85,TAB(9)=100,TAB(10)=110,TAB(11)=115,TAB(12)=123
  S TAB(13)=130,TAB(14)=141,TAB(15)=150
@@ -256,12 +257,12 @@ USHOW(TAB,SORT,FILTER) ;Display job info, sorted by pid
  .. W ?TAB(11)
  .. i (LKS+LKF)<100 W LKS,"/",LKS+LKF
  .. e  w $J(lockSuccess*100,"",2)_"%"
- .. N CFE,CAT S CFE=$g(^XUTL("XUSYS",PID,"JE","GSTAT","CFE")),CAT=$g(^("CAT"))
+ .. N CFT,CAT S CFT=$g(^XUTL("XUSYS",PID,"JE","GSTAT","CFT")),CAT=$g(^("CAT"))
  .. N critAcqFailure
- .. I CFE+CAT'=0 S critAcqFailure=CFE/(CFE+CAT)
+ .. I CFT+CAT'=0 S critAcqFailure=CFT/(CFT+CAT)
  .. e  s critAcqFailure=0
  .. W ?TAB(12)
- .. i (CFE+CAT)<9999 W CFE,"/",CFE+CAT
+ .. i (CFT+CAT)<100 W CFT,"/",CFT+CAT
  .. e  w $J(critAcqFailure*100,"",2)_"%"
  . I IOM>130 D
  .. W ?TAB(13),$J($G(^XUTL("XUSYS",PID,"JE","RBYTE"))/(1024*1024),"",2)
