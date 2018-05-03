@@ -14,7 +14,7 @@
 \MakeOuterQuote{"}
 
 %opening
-\title{ZSY: System Status for GT.M/YottaDB}
+\title{\^{}ZSY: System Status for GT.M/YottaDB}
 \author{Sam Habiel, Pharm.D.}
 
 \begin{document}
@@ -102,9 +102,28 @@ PID   PName   Device       Routine            Name                CPU Time OP/RE
 7422  mumps   BG-0         GETTASK+3^%ZTMS1   Sub 7422            00:00:00 0.00      18k/2k      16/0/0/0  1    98.50%  89.78% 0.00    0.41  0.10
 \end{lstlisting}
 \end{changemargin}
-\end{landscape}
 
+
+Here is by contrast the Cache system status:
+
+\lstset{
+	caption=Cache System Status
+}
+\begin{lstlisting}
+                   Cache System Status:  4:00 pm 02 May 2018
+Process  Device      Namespace      Routine         CPU,Glob  Pr User/Location
+     92  /dev/null   PLA            XMKPLQ         8415,815   0  %System
+     61  |TCP|9430   PLA            %ZISTCPS       2805,187   0  %System
+     66  /dev/null   PLA            %ZTM           9180,1078  0  %System
+     68  |TCP|8001   PLA            XOBVTCPL       5355,416   0  %System
+     93  /dev/null   PLA            XMTDT          6885,380   0  %System
+     94  /dev/null   PLA            %ZTMS1        18615,2779  0  %System
+
+6 user, 0 system, 256 mb global/23 mb routine cache
+\end{lstlisting}
+\end{landscape}
 \pagebreak
+
 \begin{multicols}{2}
 \section{Explanation of Columns}
 
@@ -150,8 +169,238 @@ This is either the name of the user from File 200 if the process has a DUZ varia
 Total CPU time (User + System) as reported by ps.
 
 \subsection{OP/READ}
-Operations/Read: Number of global operations per database block read (DTA+GET+ORD+ZPR+QRY)/DRD
+Operations/Read: Number of global operations per database block read obtained via the following formula:  \[\frac{DTA+GET+ORD+ZPR+QRY}{DRD}\]
+
+DRD is the number of database reads; DTA, GET, ORD, ZPR and QRY are the number of operations on globals of \$DATA, \$GET, \$ORDER, reverse \$ORDER, and \$QUERY (forward and reverse) respectively. This statistic is only for the DEFAULT region of the database.
+
+\subsection{NTR/NTW}
+This is the number of non-transaction reads and non-transactions writes into the DEFAULT region of the database. If NTR $>$ 9999, the values will divided by 1024 and displayed in kilos. This statistic is only for the DEFAULT region of the database.
+
+\subsection{NR0123}
+This is the number of \# of Non-TP transaction Restarts at try 0, 1, 2, and 3. A large number of retries at 2 or 3 is a bad sign. This statistic is only for the DEFAULT region of the database.
+
+\subsection{\#L}
+Number of locks held by the process.
+
+\subsection{\%LSUCC}
+Lock success percentage calculated by: \[\frac{LKS}{LKS+LKF}\]
+
+LKS is the number of successful locks; and LKF is the number of unsuccessful locks.  If LKS + LKF is $<$ 100, then it will be shown as a fraction; otherwise it will be shown as a percentage with 2 decimal points. This statistic is only for the DEFAULT region of the database.
+
+\subsection{\%CFAIL}
+Critical section acquisition failure percentage calculated by: \[\frac{CFT}{CFT + CAT}\]
+
+CFT is the total of blocked critical section acquisitions; CAT is the total of critical section acquisitions successes. Like locks, if CFT + CAT $<$ 100, then it will be shown as a fraction; otherwise, it will be shown as a percentage with 2 decimal points. This statistic is only for the DEFAULT region of the database.
+
+This number is hard to use in isolation. It is only useful as a trend point. My system shows $>$80\% failure rate for taskman processes in a tight loop.
+
+\subsection{R MB}
+Data read from disk in megabytes, as reported by the OS.
+
+\subsection{W MB}
+Data written to disk in megabytes, as reported by the OS.
+
+\subsection{SP MB}
+This is how large the string pool is. This is a good proxy for how much heap memory is being used by GT.M/YDB for the symbol table. This is obtained using \$view("spsize").
 
 \end{multicols}
+\pagebreak
+
+\section{Job Examination Utility}
+A job examination utility is provided in order to assist with troubleshooting specific jobs. It can be invoked in two ways: either run D ZJOB\^{}ZSY, and then select a job number from the list; or run D ZJOB\^{}ZSY(job\_number) to interrogate a specific job number. You can also use one of these alternate entry points:
+
+\begin{itemize}
+	\item D EXAMJOB\^{}ZSY[(job\_number)]                                                      
+	\item D VIEWJOB\^{}ZSY[(job\_number)]                                                       
+	\item D JOBVIEW\^{}ZSY[(job\_number)] 
+\end{itemize}
+
+Pressing enter on the screens that are displayed updates them. If you want to exit, type \^{}.
+
+Following is the screen obtained from D ZJOB\^{}ZSY:
+\lstset{
+	caption=D ZJOB\^{}ZSY
+}
+\begin{lstlisting}
+
+GT.M System Status users on 02-MAY-18 15:16:38
+PID   PName   Device       Routine            Name                CPU Time
+11422 mumps   BG-0         IDLE+3^%ZTM        Taskman ICARUS 1    00:00:03
+11481 mumps   BG-0         GO+26^XMKPLQ       POSTMASTER          00:00:00
+11483 mumps   BG-0         GO+12^XMTDT        POSTMASTER          00:00:00
+11489 mumps   BG-S14823    LGTM+25^%ZISTCPS   POSTMASTER          00:00:01
+13063 mumps   /dev/pts/21  INTRPTALL+8^ZSY    USER,ONE            00:03:01
+15287 mumps   BG-0         GETTASK+3^%ZTMS1                       00:00:00
+
+Total 6 users.
+
+Enter a job number to examine (^ to quit): 
+\end{lstlisting}
+
+Selecting a job number, or invoking it directly using D ZJOB\^{}ZSY(PID) will let you to the follow screen:
+
+\lstset{
+	caption=Job Examination Screen
+}
+\pagebreak
+
+\begin{lstlisting}
+JOB INFORMATION FOR 11483 (2018-MAY-02 15:26:57)
+AT: GO+12^XMTDT:  . . H XMHANG
+
+Stack: 
+1. SUBMGR+3^%ZTMS1                       D PROCESS^%ZTMS2 G:$D(ZTQUIT) QUIT^%ZTMS
+2. PROCESS+9^%ZTMS2                      D TASK^%ZTMS3 I ZTYPE="C"!$D(ZTNONEXT) Q
+3. 4+10^%ZTMS3                           D RUN
+4. RUN+4^%ZTMS3                          D @ZTRTN
+5. GO+5^XMTDT                            F  Q:$P($G(^XMB(1,1,0)),U,16)  D
+6. GO+11^XMTDT                           . F  D  Q:$$TSTAMP^XMXUTIL1-XMWAIT>60
+7. GO+12^XMTDT:                          . . H XMHANG
+
+Locks: 
+LOCK ^XMBPOST("POST_Tickler") LEVEL=1
+LOCK ^%ZTSCH("TASK",3479) LEVEL=1
+
+Devices: 
+0 OPEN RMS STREAM NOWRAP 
+0-out OPEN RMS STREAM NOWRAP 
+
+Breakpoints: 
+
+Global Stats for default region: 
+BTD: 0         CAT: 26        CFE: 0         CFS: 16k       CFT: 129       CQS: 0 
+CQT: 0         CTN: 188m      CYS: 1         CYT: 1         DEX: 0         DFL: 0 
+DFS: 0         DRD: 13        DTA: 30        DWT: 14        GET: 2262      JBB: 1568 
+JEX: 0         JFB: 0         JFL: 0         JFS: 0         JFW: 0         JRE: 0 
+JRI: 0         JRL: 12        JRO: 1         JRP: 0         KIL: 4         LKF: 2 
+LKS: 9         NBR: 10k       NBW: 11        NR0: 0         NR1: 0         NR2: 0 
+NR3: 0         NTR: 3985      NTW: 12        ORD: 1677      QRY: 0         REG: DEFAULT 
+SET: 10        TBR: 0         TBW: 0         TC0: 0         TC1: 0         TC2: 0 
+TC3: 0         TC4: 0         TR0: 0         TR1: 0         TR2: 0         TR3: 0 
+TR4: 0         TRB: 0         TTR: 0         TTW: 0         ZPR: 4         ZTR: 0 
+
+
+String Pool (size,currently used,freed): 102056,5684,0
+
+Enter to Refersh, V for variables, I for ISVs, K to kill
+L to load variables into your ST and quit, ^ to go back: 
+D to debug (broken), Z to zshow all data for debugging.
+\end{lstlisting}
+
+Pressing enter on this page refreshes the information. Pressing enter frequently will give you a good view of what's happening in an execution.
+
+The sections should be self-explanatory.
+
+Pressing V or I will show you variables and Intrinsic Special Variables(ISV). They are just printed in a vertical list so that they are easy to copy and paste.
+\lstset{
+	caption=Variable List
+}
+\begin{lstlisting}
+%=1
+%ZPOS="GO+12^XMTDT"
+%ZTIME=5596168159
+%ZTPFLG("BalLimit")=100
+%ZTPFLG("HOME")="ICARUS:foia.2018.02"
+%ZTPFLG("LOCKTM")=3
+%ZTPFLG("MIN")=1
+%ZTPFLG("RT")=0
+%ZTPFLG("USER")=18
+%ZTPFLG("XUSCNT")=59
+%ZTPFLG("ZTPN")=1
+%ZTPFLG("ZTREQ")=1
+%reference="^XMB(3.9,""AF"",0)"
+DILOCKTM=3
+DT=3180502
+DTIME=1
+DUZ=.5
+DUZ(0)="@" (etc...)
+\end{lstlisting}
+
+\lstset{
+	caption=ISV List
+}
+\begin{lstlisting}
+ISVs: 
+$DEVICE=""
+$ECODE=""
+$ESTACK=9
+$ETRAP="D ERROR^%ZTMS HALT"
+$HOROLOG="64770,56506"
+$IO=0
+$JOB=11483
+$KEY=""
+$PRINCIPAL=0
+$QUIT=1
+$REFERENCE="^XUTL(""XUSYS"",11483,""JE"",""I"",10)"
+$STACK=9
+$STORAGE=2147483647
+$SYSTEM="47,foia.2018.02"
+$TEST=1
+$TLEVEL=0 (etc...)
+\end{lstlisting}
+
+K will kill the process (actually, it sends it to HALT\^{}ZU after cleaning it up--killing it softly by forcing it to drink a cup). \^{} will take you back; D (debug) is currently broken; and Z is there for the developer's use.
+
+\pagebreak
+
+\section{Other Entry Points}
+\^{}ZSY includes various other entry points that can be used by developers and system managers. Here they are.
+
+\subsection{D TMMGR\^{}ZSY [Public]}
+List Taskman Manager processes only. Output:
+\lstset{
+	caption=TMMGR Entry Point
+}
+\begin{lstlisting}
+GT.M System Status users on 02-MAY-18 16:01:02
+PID   PName   Device       Routine            Name                CPU Time
+11422 mumps   BG-0         IDLE+3^%ZTM        Taskman ICARUS 1    00:00:04
+\end{lstlisting}
+
+\subsection{D TMSUB\^{}ZSY [Public]}
+List Taskman Submanger processes, including those currently "otherwise" engaged.
+\lstset{
+	caption=TMSUB Entry Point
+}
+\begin{lstlisting}
+GT.M System Status users on 02-MAY-18 16:03:46
+PID   PName   Device       Routine            Name                CPU Time
+11481 mumps   BG-0         GO+26^XMKPLQ       POSTMASTER          00:00:00
+11483 mumps   BG-0         GO+12^XMTDT        POSTMASTER          00:00:00
+11489 mumps   BG-S14823    LGTM+25^%ZISTCPS   POSTMASTER          00:00:01
+15287 mumps   BG-0         GETTASK+3^%ZTMS1                       00:00:02
+\end{lstlisting}
+
+\subsection{\$\$UNIXLSOF\^{}ZSY(.procs) [Kernel Use Only]}
+This gives you a listing of all the processes accessing the DEFAULT region of the database. The extrinsic output is the number of processes; while \texttt{.procs} contains an M array of the process numbers.
+
+This API should be used by Kernel level applications only.
+\lstset{
+	caption=UNIXLSOF Entry Point
+}
+\begin{lstlisting}
+>W $$UNIXLSOF^ZSY(.zzz)
+6
+>zwrite zzz
+zzz(1)=11422
+zzz(2)=11481
+zzz(3)=11483
+zzz(4)=11489
+zzz(5)=13063
+zzz(6)=15287
+\end{lstlisting}
+
+\subsection{D INTRPT\^{}ZSY(PID) [Kernel Use Only]}
+Send a GT.M Interrupt to a process specified by its PID.
+
+\subsection{D INTRPTALL\^{}ZSY[(.procs)] [Kernel Use Only]}
+Use the \$\$UNIXLSOF\^{}ZSY(.procs) API to find all processes accessing the DEFAULT region and interrupt all of them. You can optionally pass in .procs to get a list of all the PIDs that got interrupted.
+
+\subsection{D HALTALL\^{}ZSY [Kernel Use Only]}
+"Softly" (\^{}XUSCLEAN, HALT\^{}ZU) kill all processes.
+
+\subsection{D HALTONE\^{}ZSY(PID) [Kernel Use Only]}
+"Softly" kill a single process specified by PID
 
 \end{document}
+
