@@ -17,7 +17,7 @@ The KIDS builds provided are combined: BOTH XU\*8.0\*10001 and XU\*8.0\*10002
 are in a sequential KIDS build.
 
 Download links:
- * KIDS: https://github.com/shabiel/Kernel-GTM/releases/download/XU-8.0-10002/XU_8-0_10001--XU_8-0_10002-T3.KID
+ * KIDS: https://github.com/shabiel/Kernel-GTM/releases/download/XU-8.0-10002/XU_8-0_10001--XU_8-0_10002.KID
  * .m files for virgin installations: https://github.com/shabiel/Kernel-GTM/releases/download/XU-8.0-10002/virgin_install.zip
 
 Unit Testing
