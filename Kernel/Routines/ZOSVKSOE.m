@@ -24,8 +24,10 @@ START(KMPSTEMP) ;-- called by routine CVMS+2^KMPSGE/CWINNT+1^KMPSGE in VAH
  S U="^",KMPSSITE=$P(KMPSTEMP,U),NUM=$P(KMPSTEMP,U,2),KMPSLOC=$P(KMPSTEMP,U,3)
  S KMPSDT=$P(KMPSTEMP,U,4),KMPSPROD=$P(KMPSTEMP,U,5),KMPSVOL=$P(KMPSTEMP,U,6)
  K KMPSTEMP
- S KMPSZU=$ZNSPACE_","_KMPSVOL
+ ; CE: begin port to GTM
+ S KMPSZU=$ZNSPACE_","_KMPSVOL ; use $ZGLD
  S ^XTMP("KMPS","START",KMPSVOL,NUM)=$H
+ ;
  S VERSION=$$VERSION^%ZOSV ; IA# 10097
  I VERSION<2008 D DONE Q
  ;
@@ -34,6 +36,8 @@ START(KMPSTEMP) ;-- called by routine CVMS+2^KMPSGE/CWINNT+1^KMPSGE in VAH
  ;
  ; check for accepted operating system
  Q:'$$OSOKAY(ZV)
+ ;
+ ; CE: end port to GTM
  ;
  D ALLOS
  ;
@@ -47,8 +51,13 @@ ALLOS ;-- entry point now for all OS's
  ;
  N GLOARRAY,RC
  ;
+ ; CE: begin port to GTM
+ ; Appears to be the equivalent of %GD (Global Directory)
+ ; create stuff in %ZOSV to do this
+ ;
  ; set up GLOARRAY array indexed by global name
  S RC=$$GetDirGlobals^%SYS.DATABASE(KMPSVOL,.GLOARRAY)
+ ; CE: end port to GTM
  ;
  I ('+RC) D ERRVMS G ERROR
  ;
@@ -94,6 +103,15 @@ ALLGLO ;- collect global info
  .;     global big strings..... GLOBIGSTRINGS
  .;     data size.............. DATASIZE
  .; will stop if there are more than 999 errors with this global
+ .;
+ .; CE: begin port to GTM
+ .; This looks promising
+ .; mupip integ -fast -sub=<gvn> -r <region>
+ .; directory blocks, records
+ .; index blocks are pointer blocks
+ .; big blocks are kinda like spanning blocks, probably not necessary
+ .; YDB>w $$^%PEEKBYNAME("sgmnt_data.blk_size","DEFAULT")
+ .; 4096
  .S RC=$$CheckGlobalIntegrity^%SYS.DATABASE(KMPSVOL,GLO,999,.GLOTOTBLKS,.GLOPNTBLKS,.GLOTOTBYTES,.GLOPNTBYTES,.GLOBIGBLKS,.GLOBIGBYTES,.GLOBIGSTRINGS,.DATASIZE)
  .;
  .K MSGLIST
@@ -106,6 +124,8 @@ ALLGLO ;- collect global info
  ..; more than 999 errors reported
  ..I INFO["***Further checking of this global is aborted." S RC=0 D ERRVMS Q
  ..;
+ ..; This does not make much sense...
+ ..; Probably omit for GTM
  ..I ($P(INFO,":")["Top Pointer Level")!($P(INFO,":")["Top/Bottom Pnt Level") D  Q
  ...S ^XTMP("KMPS",KMPSSITE,NUM,GLO,KMPSZU,KMPSDT,1)=BLK_"^"_EFF_"%^Pointer"
  ..I $P(INFO,":")["Pointer Level" D  Q
@@ -117,6 +137,7 @@ ALLGLO ;- collect global info
  ..I $P(INFO,":")["Big Strings" D  Q
  ...S ^XTMP("KMPS",KMPSSITE,NUM,GLO,KMPSZU,KMPSDT,"L")=BLK_"^"_EFF_"%^LongString"
  ;
+ ; CE: End port to GTM
  I ('+RC) G ERROR
  ;
  Q
@@ -152,11 +173,14 @@ OSOKAY(ZV) ;-- extrinsic function - operating system ok for SAGG
  ;         "" - os not okay
  ;---------------------------------------------------------------
  ;
+ ; CE: Begin port to GTM
+ ; Fix this for GTM
  Q:$G(ZV)="" ""
  Q:ZV="Cache for OpenVMS" 1
  Q:$E(ZV,1,14)="Cache for UNIX" 1
  Q:$E(ZV,1,17)="Cache for Windows" 1
  Q ""
+ ; CE: End port to GTM
  ;
 ERROR ; ERROR - Tell all SAGG jobs to STOP collection
  ;

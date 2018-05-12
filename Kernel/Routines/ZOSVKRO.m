@@ -110,30 +110,35 @@ STATS() ;  return current stats for this $job
  N KMPVCPU,KMPVMUMPS,KMPVOS,KMPVPROC,KMPVRET,KMPVTCPU,KMPVV,KMPVVER,KMPVZH
  ;
  S KMPVRET=""
+ ; CE: begin port to GTM
  ; mumps implementation
  I $G(KMPV("NOKILL","KMPVMUMPS"))="" S KMPV("NOKILL","KMPVMUMPS")=$$VERSION^%ZOSV(1) ; IA 10097
  ; quit if not cache
  Q:$TR(KMPV("NOKILL","KMPVMUMPS"),"cahe","CAHE")'["CACHE" ""
  ; cache version
  I $G(KMPV("NOKILL","KMPVVER"))="" S KMPV("NOKILL","KMPVVER")=$P($$VERSION^%ZOSV(0),".",1,2) ; IA 10097
+ ; CE: end port to GTM
  ;
  ; if version is greater than 2007
  I KMPV("NOKILL","KMPVVER")>2007 D
  .; RETURN = cpu^lines^commands^GloRefs
+ .;
+ .; CE: begin port to GTM
  .S KMPVPROC=##class(%SYS.ProcessQuery).%OpenId($J)
  .Q:KMPVPROC=""
  .; cpu time
- .S KMPVCPU=KMPVPROC.GetCPUTime()
- .S KMPVTCPU=$P(KMPVCPU,",")+$P(KMPVCPU,",",2)
+ .S KMPVCPU=KMPVPROC.GetCPUTime() ; This needs to use $ZGETJPI("","cputim")
+ .S KMPVTCPU=$P(KMPVCPU,",")+$P(KMPVCPU,",",2) ; The above gets parent and child times - no need for this
  .S $P(KMPVRET,U)=KMPVTCPU
  .; m commands - lines
- .S $P(KMPVRET,U,2)=KMPVPROC.LinesExecuted
+ .S $P(KMPVRET,U,2)=KMPVPROC.LinesExecuted ; Not available without turning on trace which is overkill
  .; m commands - commands
- .S $P(KMPVRET,U,3)=KMPVPROC.CommandsExecuted
+ .S $P(KMPVRET,U,3)=KMPVPROC.CommandsExecuted ; Not available
  .; global references
- .S $P(KMPVRET,U,4)=KMPVPROC.GlobalReferences
+ .S $P(KMPVRET,U,4)=KMPVPROC.GlobalReferences ; This needs to use $ZSHOW "G" DTA+GET+ORD+ZPR+QRY
  .; current time UTC
- .S $P(KMPVRET,U,5)=$ZTIMESTAMP
+ .S $P(KMPVRET,U,5)=$ZTIMESTAMP  ; This needs to use $ZUT
+ .; CE: End port to GTM
  ;
  ; if version is 4 or greater and not linux and not unknown
  E  D
