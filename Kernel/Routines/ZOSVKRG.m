@@ -1,0 +1,2 @@
+%ZOSVKR ;YDB/CJE&OSE/SMH - ZOSVKRG - Collect RUM Statistics for GT.M on Linux ;5/28/2018
+ ;;8.0;KERNEL;**90,94,107,122,143,186,550,568,670**;3/1/2018
